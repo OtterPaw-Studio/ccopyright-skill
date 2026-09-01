@@ -1,7 +1,7 @@
 # Software Copyright Preparation Skill Specification
 
-Status: Iteration 3 implemented and validated  
-Date: 2026-08-31  
+Status: Iteration 5 implementation validated; Aone publication pending
+Date: 2026-09-01
 Iteration 2 evidence: twelve user-supplied portal-form screenshots received on
 2026-08-31. Their capture date is unknown, their coverage is partial, and the
 original images are not retained in the skill because one contains personal
@@ -73,6 +73,9 @@ layout with `SKILL.md` at the archive root.
 16. Keep the source Skill directory self-contained so repository installers
     that copy only the directory containing `SKILL.md` also receive scripts,
     assets, references, metadata, and both installed READMEs.
+17. Keep Aone/Contextlab Git-synchronized version packages self-contained by
+    declaring the complete runtime file allowlist in package metadata without
+    adding Aone-only keys to Codex `SKILL.md` frontmatter.
 
 ## Out of scope
 
@@ -279,6 +282,24 @@ Acceptance criteria:
 - The documentation uses the canonical skills.sh source
   `OtterPaw-Studio/ccopyright-skill`, matching the configured Git origin.
 
+### US9: Publish a complete Aone version package
+
+As a maintainer, I can synchronize the same Skill to Aone and publish a new
+version whose file tree contains the complete runtime rather than only
+`SKILL.md` and `package.json`.
+
+Acceptance criteria:
+
+- `skills/ccopyright-register/package.json` contains a semver version and an
+  explicit allowlist for `SKILL.md`, both READMEs, `agents/`, `assets/`,
+  `references/`, and `scripts/`.
+- An npm dry-run from the Skill directory lists all maintained source files and
+  no files outside the Skill directory.
+- `SKILL.md` remains valid under the official Codex Skill validator.
+- The deterministic `.skill` archive also contains `package.json`.
+- An existing incomplete Aone version is not treated as mutable; the repaired
+  package is synchronized and published under a higher version.
+
 ## Non-functional requirements
 
 - Python scripts use only the standard library.
@@ -319,6 +340,10 @@ Iteration 4 makes Chinese the primary README language, retains English as
 `README.en.md`, records the canonical GitHub SSH origin, and adds repository
 ignore rules for generated, local-install, cache, secret, and applicant-material
 workspaces.
+
+Iteration 5 adds an Aone/Contextlab package manifest beside `SKILL.md`. The
+manifest owns the Aone version and complete file allowlist while the
+`SKILL.md` frontmatter remains portable across Codex and skills.sh.
 
 ## Iteration 2 validation record
 
@@ -378,3 +403,24 @@ workspaces.
   SHA-256 `5a58c34d8f4f45acd33a17d8ce1af35a04c5d5c1639409ee6a8e601698b06768`.
 - The final privacy scan found no clipboard paths, temporary screenshot paths,
   or 18-character identity-number-shaped values.
+
+## Iteration 5 validation record
+
+- `npm pack --dry-run --json` produced
+  `shuangchi-gsc-ccopyright-register@0.0.3` with 21 files: `SKILL.md`,
+  `package.json`, both READMEs, UI metadata, both assets, all localized
+  references, and both scripts.
+- The ordinary Python suite reported 19 passed and one intentionally skipped
+  PDF case; the explicitly enabled Chromium/Poppler PDF integration passed.
+- Current skills.sh (`skills` 1.5.23 during validation) discovered exactly one
+  Skill and a disposable copied installation was byte-identical before
+  execution; its installed CLI successfully ran `preflight`.
+- The source Skill and extracted archive passed the official Codex Skill
+  validator. ZIP integrity passed, and two consecutive builds produced the
+  same 75,385-byte, 22-entry archive with SHA-256
+  `705bef0d3830e7eb269780e766533592ab8923d07012c2fffce74810fa74acc8`.
+- The privacy scan found no clipboard paths, temporary screenshot paths,
+  18-character identity-number-shaped values, or placeholder evaluation text.
+- Aone Git synchronization and publication of immutable version `0.0.3` remain
+  pending external actions; version `0.0.2` is expected to retain its original
+  two-file tree.

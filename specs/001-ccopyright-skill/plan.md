@@ -11,6 +11,7 @@ skills.sh can install the source directory directly without a packaging step.
 skills/
   ccopyright-register/        Self-contained source used by skills.sh and archive
     SKILL.md                  Instructions and language routing
+    package.json              Aone version metadata and package file allowlist
     README.md                 Installed Chinese user guide (primary)
     README.en.md              Installed English user guide
     scripts/ccopyright.py     Workflow CLI
@@ -131,6 +132,9 @@ identical archive.
 5. Repeated-build hash comparison proving deterministic packaging.
 6. Schema-v1 migration, portal conditional completeness, character-limit,
    source-line-count, exceptional-deposit, dynamic-proof, and privacy tests.
+7. npm dry-run inspection proving the Aone/Contextlab version package contains
+   every runtime resource while the official Codex Skill validator still
+   accepts `SKILL.md`.
 
 ## Iteration 2 completion
 
@@ -164,3 +168,15 @@ installed `preflight`/`init`, tests, PDF integration, deterministic packaging,
 ZIP integrity, local-link checks, privacy audit, and official validation pass.
 Only the public GitHub owner placeholder remains for publication-time
 substitution.
+
+## Iteration 5: complete Aone package contents
+
+1. Keep portable Skill discovery metadata in `SKILL.md` and Aone package
+   version/file-selection metadata in the adjacent `package.json`.
+2. Explicitly allowlist both READMEs, UI metadata, assets, localized references,
+   scripts, and `SKILL.md` for the Contextlab package.
+3. Add package-manifest coverage and archive-entry assertions.
+4. Run npm dry-run inspection, the Python suite, deterministic archive rebuild,
+   skills.sh discovery/install checks, and official Skill validation.
+5. Synchronize and publish a higher Aone version; do not expect the existing
+   incomplete version to change retroactively.

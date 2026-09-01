@@ -25,6 +25,7 @@ venv/
 
 # Generated Skill packages and software-copyright workspaces
 dist/
+skills/ccopyright-register/*.tgz
 .ccopyright/
 
 # Local skills.sh installation output

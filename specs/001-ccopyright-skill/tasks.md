@@ -61,3 +61,10 @@
       rebuild and validate the package.
 - [x] T030 Replace inline HTML emphasis tags in all four user-facing READMEs
       with Markdown bold syntax, then rebuild and validate the package.
+- [x] T031 Add a Contextlab-compatible `package.json` with a complete runtime
+      file allowlist while keeping Codex `SKILL.md` frontmatter portable.
+- [x] T032 Add package-manifest coverage and deterministic archive assertions.
+- [x] T033 Run npm, Python, PDF, skills.sh, archive, privacy, and official Skill
+      validation for iteration 5 and record the final results.
+- [ ] T034 Synchronize the Git source in Aone, publish version 0.0.3, and verify
+      that its immutable version file tree contains all expected files.

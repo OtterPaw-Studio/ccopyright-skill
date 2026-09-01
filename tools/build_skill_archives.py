@@ -45,6 +45,7 @@ def collect_entries(package_root: Path, locales: tuple[str, ...]) -> dict[str, b
         entries[path.relative_to(package_root).as_posix()] = path.read_bytes()
     required = {
         "SKILL.md",
+        "package.json",
         "README.md",
         "README.en.md",
         "agents/openai.yaml",

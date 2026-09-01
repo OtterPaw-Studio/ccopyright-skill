@@ -17,6 +17,7 @@ This file is for coding agents and maintainers. The root Chinese and English REA
 ~~~text
 skills/ccopyright-register/
   SKILL.md                   installed instruction entrypoint
+  package.json               Aone/Contextlab package metadata and file allowlist
   README.md                  installed Chinese user guide (primary)
   README.en.md               installed English user guide
   agents/openai.yaml         UI metadata and invocation policy
@@ -69,6 +70,28 @@ npx skills@latest add /absolute/path/to/ccopyright-skill \
 
 A root <code>skills.sh.json</code> is not needed while the repository contains one Skill. The file controls repository-page grouping, not discovery or installation. Add it only if multiple public skills need curated grouping.
 
+## Aone / Contextlab compatibility
+
+Keep <code>SKILL.md</code> compatible with the Codex validator: its frontmatter
+contains <code>name</code> and <code>description</code>, not Aone-only top-level
+<code>version</code> or <code>files</code> keys. The adjacent
+<code>package.json</code> owns the Aone package version and explicit
+<code>files</code> allowlist used by Git synchronization.
+
+Before publishing an Aone version, increment <code>package.json.version</code>
+and verify the package contents from the Skill directory:
+
+~~~bash
+npm pack --dry-run --json --cache /tmp/ccopyright-npm-cache
+~~~
+
+The package must contain both READMEs, <code>agents/</code>,
+<code>assets/</code>, <code>references/</code>, and <code>scripts/</code>, in
+addition to <code>SKILL.md</code> and the generated/included
+<code>package.json</code>. Published Contextlab versions are immutable: a Git
+sync does not retrofit missing files into an existing version, so sync and
+publish a higher version after changing this manifest.
+
 ## Editing and implementation
 
 - Use <code>skills/ccopyright-register/assets/application.template.json</code> as the schema template.
@@ -117,6 +140,7 @@ Extract <code>dist/ccopyright-register.skill</code> to a temporary directory and
 2. Run unit/package tests and the explicit PDF integration test.
 3. Run the skills.sh discovery and disposable installation checks.
 4. Rebuild the archive twice and compare hashes.
-5. Run the official Skill validator on the extracted archive.
-6. Review all four READMEs for user/developer separation and bilingual parity.
-7. Report the archive path, size, hash, validation results, and canonical publication source.
+5. Run the npm dry-run and inspect the Aone/Contextlab package file list.
+6. Run the official Skill validator on the extracted archive.
+7. Review all four READMEs for user/developer separation and bilingual parity.
+8. Report the archive path, size, hash, validation results, and canonical publication source.

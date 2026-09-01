@@ -1,0 +1,7 @@
+interface:
+  display_name: "Software Copyright Q&A"
+  short_description: "Answer self-service software copyright questions"
+  brand_color: "#B42318"
+  default_prompt: "Use $ccopyright-qa to answer my China software copyright registration question with dated sources and clear uncertainty."
+policy:
+  allow_implicit_invocation: true

@@ -46,7 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
             "computer-software copyright registration."
         ),
     )
-    parser.add_argument("--version", action="version", version="ccopyright 0.2.0")
+    parser.add_argument("--version", action="version", version="ccopyright 0.3.0")
     commands = parser.add_subparsers(dest="command", required=True)
 
     preflight_parser = commands.add_parser("preflight", help="Report local tool availability.")
@@ -132,10 +132,12 @@ def run(args: argparse.Namespace) -> Any:
         application, upgraded = upgrade_application(load_json(application_path))
         if upgraded:
             write_json(application_path, application)
-        paths["requirements"].write_text(
-            requirements_snapshot_markdown(application), encoding="utf-8"
-        )
-        return application_status(application)
+        status = application_status(application)
+        if not status["invalid_required_values"]:
+            paths["requirements"].write_text(
+                requirements_snapshot_markdown(application), encoding="utf-8"
+            )
+        return status
     if args.command == "build":
         return build_all(
             path_value(args.repo),

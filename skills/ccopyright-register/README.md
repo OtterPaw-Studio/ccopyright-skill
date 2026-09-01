@@ -8,6 +8,20 @@ ccopyright-register 会分析软件仓库、整理申请人确认的登记事实
 
 它服务于向[中国版权保护中心](https://www.ccopyright.com.cn/)人工提交之前的材料准备阶段，不填写或提交门户、不操作申请人账号、不跟踪申请，也不解析补正通知。
 
+本仓库还提供只读的 `ccopyright-qa`。如果你还在了解规则、判断是否需要代理或
+拆解服务报价，可以先安装答疑 Skill；本指南只介绍材料准备 Skill。
+
+~~~bash
+npx skills add OtterPaw-Studio/ccopyright-skill --skill ccopyright-register
+~~~
+
+同时安装答疑和材料准备：
+
+~~~bash
+npx skills add OtterPaw-Studio/ccopyright-skill \
+  --skill ccopyright-qa ccopyright-register
+~~~
+
 ## 开始使用
 
 用 Agent 打开要登记的软件仓库，先做评估：
@@ -69,13 +83,13 @@ python scripts/ccopyright.py preflight
 ## 使用流程
 
 1. **评估** — 只读盘点仓库，并输出 **INFO**/**WARNING** 预检。
-2. **初始化** — 创建 **.ccopyright/** 和 schema v2 唯一事实文件。
+2. **初始化** — 创建 **.ccopyright/** 和 schema v3 唯一事实文件；旧工作区会保留事实并自动迁移。
 3. **草稿** — 生成填写底稿、条件证明清单、源码/文档材料和追溯记录。
 4. **确认** — 补全事实、当前门户规则、源码顺序并处理文档证据警告。
 5. **渲染与校验** — 生成 A4 PDF，检查尺寸、行身份、规范字段、哈希和待确认标记。
 6. **复核与发布** — 逐页检查接触表，再明确发布一个不覆盖旧内容的新版本。
 
-警告本身不会阻断生成。必填事实缺失、门户字段约束不满足、选择例外交存或 PDF 校验失败，会阻断对应的最终阶段。
+仓库、权属和知识产权预检中的 **WARNING** 只用于复核，不会阻断生成。门户字数冲突、条件字段缺失和活动分支的证明准备状态未解决时，会在草稿中显示为 **WARNING**，并阻断最终生成；必填事实缺失、选择例外交存或 PDF 校验失败也会阻断相应阶段。
 
 ## 产物目录
 
@@ -91,7 +105,9 @@ python scripts/ccopyright.py preflight
 
 ### 申请表填写底稿
 
-按门户顺序组织中文填写值、可见字数、确认状态和条件分支。当前门户始终优先于随附的部分截图基线。
+按门户顺序组织中文填写值、字符数、确认状态和条件分支。内置门户校验配置会在
+草稿中把字数冲突、未满足的条件字段和证明准备状态列为警告，并在最终模式执行门禁；它不是
+官方依据，当前门户始终优先。
 
 ### 程序鉴别材料
 
@@ -103,7 +119,7 @@ python scripts/ccopyright.py preflight
 
 ### 证明材料清单
 
-根据合作开发、委托开发、下达任务、修改软件、继受取得、部分权利等分支列出仓库外的准备事项，不复制证明文件。
+根据合作开发、委托开发、下达任务、修改软件、继受取得、部分权利等分支列出仓库外的准备事项，不复制证明文件。状态只能是 `not-recorded`、`ready` 或 `not-required`；活动分支必须达到该分支允许的就绪状态才能最终生成。
 
 ## 可选：直接运行命令
 
@@ -118,7 +134,11 @@ python scripts/ccopyright.py validate --workspace /仓库/路径/.ccopyright
 python scripts/ccopyright.py publish --workspace /仓库/路径/.ccopyright --human-reviewed
 ~~~
 
-完整命令见 [references/zh-CN/workflow.md](references/zh-CN/workflow.md)。门户字段和事实结构见 [references/zh-CN/portal-form.md](references/zh-CN/portal-form.md) 与 [references/zh-CN/application-schema.md](references/zh-CN/application-schema.md)。
+完整命令见 [references/zh-CN/workflow.md](references/zh-CN/workflow.md)。官方直达页、
+门户校验配置和事实结构分别见
+[references/zh-CN/official-sources.md](references/zh-CN/official-sources.md)、
+[references/zh-CN/portal-form.md](references/zh-CN/portal-form.md) 与
+[references/zh-CN/application-schema.md](references/zh-CN/application-schema.md)。
 
 ## 安全与限制
 

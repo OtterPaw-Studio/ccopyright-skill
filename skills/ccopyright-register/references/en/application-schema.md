@@ -1,6 +1,11 @@
 # Canonical application schema (English)
 
-`facts/application.json` is the only human-editable fact source. The current structure is `schema_version: 2`. `init` and `status` upgrade version 1 in place, preserve existing facts, leave new fields unconfirmed, and never maintain a separate shadow copy.
+`facts/application.json` is the only human-editable fact source. The current
+structure is `schema_version: 3`. `init` and `status` upgrade older versions in
+place, preserve existing facts and applicant-adjusted gates, leave new fields
+unconfirmed, and never maintain a separate shadow copy. The v2
+`requirements.portal_evidence` object is removed and migrated to a portal
+validation profile with no attachment history.
 
 ## `software`
 
@@ -10,7 +15,7 @@
 - `short_name`: optional; leave it empty when there is no short name and do not enter a placeholder such as “none.”
 - `version`: required exact version, including any intended `V` prefix, punctuation, and casing.
 - `category`: `application`, `embedded`, `middleware`, or `operating-system`.
-- `description.type`: `original` or `modified`. A modified program also needs `modification_summary` within the visible 50-character limit and a `modification_basis` that records whether the prior program is registered or authorization from the original rights holder is required.
+- `description.type`: `original` or `modified`. A modified program also needs `modification_summary` within the bundled 50-character gate and a `modification_basis` that records whether the prior program is registered or authorization from the original rights holder is required.
 - `development_type`: `independent`, `cooperative`, `commissioned`, or `assigned-task`.
 - `rights_acquisition`: `original` or `successor`; successor acquisition needs a separately confirmed basis.
 - `rights_scope`: `all` or `partial`; partial rights require the scope and supporting proof.
@@ -25,12 +30,12 @@
 
 ### Environment, languages, and functionality
 
-- `environment` has six separate fields: `development_hardware`, `runtime_hardware`, `development_os`, `development_tools`, `runtime_platform`, and `supporting_software`. Each has a visible 50-character limit in the supplied screenshots.
-- `programming_languages`: choices selected from the portal; `other_programming_languages` contains only languages outside that list and has a visible 120-character limit.
-- `purpose` and `industry`: each has a visible 50-character limit.
-- `technical_features`: portal feature tags; `other_technical_features` has a visible 100-character limit.
-- `main_functions`: continuous application-form prose. The supplied screenshot shows a `500~1300` counter. Local checks treat this as a 500-character minimum and 1,300-character maximum, but the applicant must reconfirm it in the current portal before submission.
-- `competitive_advantages` and `commercial_value`: internal helper fields, not visible portal fields in this evidence set, and excluded from the copy-ready worksheet.
+- `environment` has six separate fields: `development_hardware`, `runtime_hardware`, `development_os`, `development_tools`, `runtime_platform`, and `supporting_software`. The bundled profile caps each at 50 characters.
+- `programming_languages`: choices selected from the portal; `other_programming_languages` contains only languages outside that list and has a bundled 120-character cap.
+- `purpose` and `industry`: each has a bundled 50-character cap.
+- `technical_features`: portal feature tags; `other_technical_features` has a bundled 100-character cap.
+- `main_functions`: continuous application-form prose. The bundled profile checks a 500-character minimum and 1,300-character maximum, but the applicant must reconfirm it in the current portal before submission.
+- `competitive_advantages` and `commercial_value`: internal helper fields outside the current portal validation profile and excluded from the copy-ready worksheet.
 
 Every description must be grounded in the repository and approved by the applicant.
 
@@ -51,10 +56,10 @@ For a Git `head`/`commit` snapshot with `include_uncommitted: false`, final gene
 
 This is a dated, configurable snapshot—not a permanent statement of portal behavior.
 
-- `captured_at` and `source_urls`: rule provenance and capture date. Keep the date empty and do not confirm `requirements.current` until the current portal has been reviewed.
-- `portal_evidence`: evidence-baseline identifier, received/captured dates, coverage, and whether originals or personal data are retained. Both privacy flags must remain `false`.
-- `portal_field_limits`: field-length limits observed in portal evidence.
-- `portal_unknowns`: formats, sizes, choice lists, and help text not established by the screenshots and still requiring manual confirmation.
+- `captured_at` and `source_urls`: rule provenance and the actual current-portal review date; the field name remains for workspace compatibility. Keep the date empty and do not confirm `requirements.current` until the current portal has been reviewed.
+- `portal_validation_profile`: portal-compatibility profile ID; it is not an official-source or evidence identifier.
+- `portal_field_limits` and `portal_field_minimums`: configured character gates. Keys must be dotted paths to string facts, and a field's minimum cannot exceed its maximum. A minimum-only gate is valid; an empty value blocks only when the field is otherwise required or conditionally required, so a minimum does not make an optional field mandatory. Removing a default gate remains effective on later runs. Draft mode emits `WARNING` for gate conflicts and unresolved conditional branches; final mode blocks.
+- `portal_unknowns`: formats, sizes, choice lists, and help text not established by the profile and still requiring manual confirmation.
 - `paper`: normally A4 under the maintained legal baseline.
 - `program_lines_per_page` and `document_lines_per_page`: printable numbered-row targets.
 - `front_pages` and `back_pages`: windows used for front/back material selection.
@@ -101,4 +106,14 @@ Confirmation means the applicant reviewed a value; it is not a legal conclusion.
 
 ## `proof_checklist` and `review`
 
-Record readiness and non-sensitive notes only. The checklist adds items dynamically for development type, modified software, successor acquisition, partial rights, or multiple rights holders. Never store identity-document numbers or scans, signatures, credentials, portal-session data, or personal data from user screenshots.
+Record readiness and non-sensitive notes only. The checklist adds items dynamically for development type, modified software, successor acquisition, partial rights, or multiple rights holders. Never store identity-document numbers or scans, signatures, credentials, portal-session data, or personal data from an unredacted portal view.
+
+Each checklist item uses one of three statuses: `not-recorded`, `ready`, or
+`not-required`. `ready` means the applicant has prepared the material outside
+the repository. Use `not-required` only after the current portal was checked
+and the active branch does not require a separate proof upload. Cooperative,
+commissioned, assigned-task, original-holder-authorization, and successor
+branches require `ready`; the bundled profile permits `not-required` only for
+the current-portal-dependent previous-registration and partial-rights items.
+An unresolved active proof item appears as a draft `WARNING` and blocks final
+generation.

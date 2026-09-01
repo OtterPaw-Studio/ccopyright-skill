@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -114,7 +115,7 @@ class RepositoryTestCase(unittest.TestCase):
                 "back_pages": 1,
                 "allow_short_final_page_for_complete_material": True,
                 "max_pdf_bytes": None,
-                "captured_at": "2026-08-31",
+                "captured_at": "2026-09-01",
             }
         )
         application["document"].update(
@@ -255,13 +256,93 @@ class RepositoryScanTests(RepositoryTestCase):
 
         core.initialize_workspace(self.repo, workspace)
         upgraded = core.load_json(application_path)
-        self.assertEqual(upgraded["schema_version"], 2)
+        self.assertEqual(upgraded["schema_version"], 3)
         self.assertEqual(upgraded["software"]["full_name"], "保留的软件名称")
         self.assertEqual(upgraded["software"]["environment"]["development_tools"], "旧开发环境")
         self.assertEqual(upgraded["software"]["environment"]["runtime_platform"], "旧运行环境")
         self.assertEqual(upgraded["software"]["main_functions"], "功能一\n功能二")
         self.assertEqual(upgraded["software"]["publication"]["region"], "旧发表地点")
         self.assertFalse(upgraded["confirmations"]["software.classification"])
+
+    def test_init_upgrades_schema_v2_portal_evidence_to_validation_profile(self) -> None:
+        workspace = self.repo / ".ccopyright"
+        initialized = core.initialize_workspace(self.repo, workspace)
+        application_path = Path(initialized["paths"]["application"])
+        application = core.load_json(application_path)
+        application["schema_version"] = 2
+        application["software"]["full_name"] = "保留的申请事实"
+        application["requirements"]["portal_evidence"] = {
+            "baseline_id": "legacy-value",
+            "originals_retained": False,
+            "personal_data_retained": False,
+        }
+        application["requirements"].pop("portal_validation_profile", None)
+        application["requirements"]["portal_field_limits"]["software.purpose"] = 48
+        application["requirements"]["portal_unknowns"].append("申请人自定义待核对项")
+        core.write_json(application_path, application)
+
+        core.initialize_workspace(self.repo, workspace)
+        upgraded = core.load_json(application_path)
+        self.assertEqual(upgraded["schema_version"], 3)
+        self.assertEqual(upgraded["software"]["full_name"], "保留的申请事实")
+        self.assertNotIn("portal_evidence", upgraded["requirements"])
+        self.assertEqual(
+            upgraded["requirements"]["portal_validation_profile"],
+            "ccpc-form-profile-v1",
+        )
+        self.assertEqual(upgraded["requirements"]["portal_field_limits"]["software.purpose"], 48)
+        self.assertIn("申请人自定义待核对项", upgraded["requirements"]["portal_unknowns"])
+
+    def test_schema_v3_removes_residual_legacy_portal_evidence(self) -> None:
+        application = core.load_json(
+            ROOT
+            / "skills"
+            / "ccopyright-register"
+            / "assets"
+            / "application.template.json"
+        )
+        application["requirements"]["portal_evidence"] = {
+            "attachment_path": "/private/tmp/unredacted-portal.png",
+            "personal_data_retained": True,
+        }
+
+        upgraded, changed = core.upgrade_application(application)
+
+        self.assertTrue(changed)
+        self.assertNotIn("portal_evidence", upgraded["requirements"])
+        self.assertIn("portal_evidence", application["requirements"])
+
+    def test_reopening_workspace_preserves_removed_portal_gate(self) -> None:
+        workspace = self.repo / ".ccopyright"
+        initialized = core.initialize_workspace(self.repo, workspace)
+        application_path = Path(initialized["paths"]["application"])
+        application = core.load_json(application_path)
+        application["requirements"]["portal_field_limits"].pop("software.purpose")
+        core.write_json(application_path, application)
+
+        core.initialize_workspace(self.repo, workspace)
+        core.initialize_workspace(self.repo, workspace)
+        reopened = core.load_json(application_path)
+        self.assertNotIn(
+            "software.purpose",
+            reopened["requirements"]["portal_field_limits"],
+        )
+
+    def test_future_schema_is_rejected_before_migration(self) -> None:
+        application = core.load_json(
+            ROOT
+            / "skills"
+            / "ccopyright-register"
+            / "assets"
+            / "application.template.json"
+        )
+        application["schema_version"] = core.APPLICATION_SCHEMA_VERSION + 1
+        application["requirements"]["portal_evidence"] = {"legacy": True}
+        original = json.loads(json.dumps(application, ensure_ascii=False))
+
+        with self.assertRaisesRegex(core.CcopyrightError, "newer than supported"):
+            core.upgrade_application(application)
+        self.assertEqual(application, original)
 
 
 class MaterialTests(RepositoryTestCase):
@@ -327,6 +408,7 @@ class MaterialTests(RepositoryTestCase):
         application["software"]["rights_holders"] = ["重复主体", "重复主体"]
         application["requirements"]["paper"] = "Letter"
         application["source"]["files"] = [str((self.repo / "src" / "main.py").resolve())]
+        application["proof_checklist"][0]["status"] = "done"
         status = core.application_status(application)
         self.assertFalse(status["final_complete"])
         joined = "\n".join(status["invalid_required_values"])
@@ -334,6 +416,46 @@ class MaterialTests(RepositoryTestCase):
         self.assertIn("duplicates", joined)
         self.assertIn("A4", joined)
         self.assertIn("repository-relative", joined)
+        self.assertIn("proof_checklist[0].status", joined)
+
+    def test_cli_status_reports_malformed_requirements_without_crashing(self) -> None:
+        workspace = self.initialized_workspace()
+        paths = core.workspace_paths(workspace)
+        snapshot_before = paths["requirements"].read_bytes()
+        application = core.load_json(paths["application"])
+        application["requirements"]["accepted_upload_formats"] = ["pdf", 7]
+        core.write_json(paths["application"], application)
+
+        process = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "skills"
+                    / "ccopyright-register"
+                    / "scripts"
+                    / "ccopyright.py"
+                ),
+                "status",
+                "--workspace",
+                str(workspace),
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        self.assertEqual(process.returncode, 0, process.stderr)
+        status = json.loads(process.stdout)
+        self.assertTrue(
+            any(
+                "accepted_upload_formats" in error
+                for error in status["invalid_required_values"]
+            )
+        )
+        self.assertFalse(status["final_complete"])
+        self.assertEqual(snapshot_before, paths["requirements"].read_bytes())
 
     def test_portal_conditionals_and_visible_character_limits_gate_final_mode(self) -> None:
         workspace = self.initialized_workspace()
@@ -368,8 +490,102 @@ class MaterialTests(RepositoryTestCase):
         )
         application["software"]["environment"]["development_hardware"] = "甲" * 51
         status = core.application_status(application)
-        self.assertTrue(any("visible portal maximum is 50" in value for value in status["portal_constraint_violations"]))
+        self.assertTrue(any("portal validation profile maximum is 50" in value for value in status["portal_constraint_violations"]))
         self.assertFalse(status["final_complete"])
+
+        core.write_json(core.workspace_paths(workspace)["application"], application)
+        draft = core.build_all(self.repo, workspace, final=False)
+        self.assertTrue(
+            any(
+                item["level"] == "WARNING"
+                and item["code"] == "portal-validation-profile"
+                and "maximum is 50" in item["message"]
+                for item in draft["warnings"]
+            )
+        )
+        with self.assertRaisesRegex(core.CcopyrightError, "portal constraints"):
+            core.build_all(self.repo, workspace, final=True)
+
+    def test_conditional_branch_gaps_are_draft_warnings_and_final_blocks(self) -> None:
+        workspace = self.initialized_workspace()
+        paths = core.workspace_paths(workspace)
+        application = core.load_json(paths["application"])
+        application["software"]["publication"] = {
+            "status": "published",
+            "date": "",
+            "country": "",
+            "region": "",
+        }
+        application["software"]["description"] = {
+            "type": "modified",
+            "modification_summary": "",
+            "modification_basis": "not-applicable",
+        }
+        application["software"]["rights_acquisition"] = "successor"
+        application["software"]["rights_acquisition_details"] = ""
+        application["software"]["rights_scope"] = "partial"
+        application["software"]["rights_scope_details"] = ""
+        core.write_json(paths["application"], application)
+
+        draft = core.build_all(self.repo, workspace, final=False)
+        conditional_warnings = [
+            item["message"]
+            for item in draft["warnings"]
+            if item["level"] == "WARNING" and item["code"] == "portal-conditional"
+        ]
+        joined = "\n".join(conditional_warnings)
+        self.assertIn("publication status is published", joined)
+        self.assertIn("modified software", joined)
+        self.assertIn("successor acquisition", joined)
+        self.assertIn("rights scope is partial", joined)
+        with self.assertRaisesRegex(core.CcopyrightError, "portal conditionals"):
+            core.build_all(self.repo, workspace, final=True)
+
+    def test_portal_gate_profile_supports_minimum_only_and_validates_paths(self) -> None:
+        workspace = self.initialized_workspace()
+        application = core.load_json(core.workspace_paths(workspace)["application"])
+        minimums = application["requirements"]["portal_field_minimums"]
+        maximums = application["requirements"]["portal_field_limits"]
+        maximums.pop("software.commercial_value", None)
+        minimums["software.commercial_value"] = 20
+
+        application["software"]["commercial_value"] = ""
+        self.assertFalse(
+            any(
+                "software.commercial_value" in item
+                for item in core.portal_constraint_violations(application)
+            )
+        )
+        application["software"]["commercial_value"] = "简短说明"
+        self.assertTrue(
+            any(
+                "software.commercial_value" in item and "minimum is 20" in item
+                for item in core.portal_constraint_violations(application)
+            )
+        )
+        snapshot = core.requirements_snapshot_markdown(application)
+        self.assertIn("| `software.commercial_value` | 20 |  |", snapshot)
+
+        core.write_json(core.workspace_paths(workspace)["application"], application)
+        draft = core.build_all(self.repo, workspace, final=False)
+        self.assertTrue(
+            any(
+                item["code"] == "portal-validation-profile"
+                and "software.commercial_value" in item["message"]
+                and "minimum is 20" in item["message"]
+                for item in draft["warnings"]
+            )
+        )
+        with self.assertRaisesRegex(core.CcopyrightError, "portal constraints"):
+            core.build_all(self.repo, workspace, final=True)
+
+        maximums["invalid-path"] = 10
+        maximums["software.not_a_field"] = 10
+        minimums["software.purpose"] = 51
+        errors = "\n".join(core.application_validation_errors(application))
+        self.assertIn("dotted application field paths", errors)
+        self.assertIn("does not resolve to an application field", errors)
+        self.assertIn("minimum 51 greater than maximum 50", errors)
 
     def test_conditional_proofs_and_portal_worksheet_are_generated(self) -> None:
         workspace = self.initialized_workspace()
@@ -382,7 +598,45 @@ class MaterialTests(RepositoryTestCase):
             "modification_basis": "authorization-required",
         }
         core.write_json(paths["application"], application)
-        core.build_all(self.repo, workspace, final=True)
+        draft = core.build_all(self.repo, workspace, final=False)
+
+        conditional_warnings = [
+            item["message"]
+            for item in draft["warnings"]
+            if item["code"] == "portal-conditional"
+        ]
+        self.assertTrue(
+            any("cooperative-agreement" in message for message in conditional_warnings)
+        )
+        self.assertTrue(
+            any(
+                "original-holder-authorization" in message
+                for message in conditional_warnings
+            )
+        )
+        with self.assertRaisesRegex(core.CcopyrightError, "portal conditionals"):
+            core.build_all(self.repo, workspace, final=True)
+
+        application = core.load_json(paths["application"])
+        application["proof_checklist"].extend(
+            [
+                {
+                    "code": "cooperative-agreement",
+                    "item": "Cooperative-development contract or agreement PDF",
+                    "status": "ready",
+                    "note": "Prepared outside the repository.",
+                },
+                {
+                    "code": "original-holder-authorization",
+                    "item": "Original rights-holder authorization PDF",
+                    "status": "ready",
+                    "note": "Prepared outside the repository.",
+                },
+            ]
+        )
+        core.write_json(paths["application"], application)
+        result = core.build_all(self.repo, workspace, final=True)
+        self.assertTrue(result["final"])
 
         proof = (paths["drafts"] / "proof-checklist.md").read_text(encoding="utf-8")
         self.assertIn("Cooperative-development contract or agreement PDF", proof)
@@ -393,8 +647,81 @@ class MaterialTests(RepositoryTestCase):
         self.assertIn("源程序量核对", worksheet)
         self.assertIn("500–1300", worksheet)
         snapshot = paths["requirements"].read_text(encoding="utf-8")
-        self.assertIn("user-supplied-form-screenshots-received-2026-08-31", snapshot)
-        self.assertIn("Personal identity data retained: `no`", snapshot)
+        self.assertIn("Current portal reviewed: `2026-09-01`", snapshot)
+        self.assertIn("Profile ID: `ccpc-form-profile-v1`", snapshot)
+        self.assertIn("Authority: `portal compatibility only`", snapshot)
+        self.assertNotIn("portal-form evidence", snapshot.lower())
+        self.assertNotIn("screenshots retained", snapshot.lower())
+
+    def test_every_conditional_proof_branch_has_a_readiness_gate(self) -> None:
+        workspace = self.initialized_workspace()
+        base = core.load_json(core.workspace_paths(workspace)["application"])
+        cases = {
+            "cooperative-agreement": {
+                "software": {"development_type": "cooperative"},
+                "ready_status": "ready",
+            },
+            "commissioned-agreement": {
+                "software": {"development_type": "commissioned"},
+                "ready_status": "ready",
+            },
+            "assigned-task-document": {
+                "software": {"development_type": "assigned-task"},
+                "ready_status": "ready",
+            },
+            "original-holder-authorization": {
+                "description": {
+                    "type": "modified",
+                    "modification_summary": "经授权修改",
+                    "modification_basis": "authorization-required",
+                },
+                "ready_status": "ready",
+            },
+            "previous-registration": {
+                "description": {
+                    "type": "modified",
+                    "modification_summary": "在已登记软件基础上修改",
+                    "modification_basis": "registered",
+                },
+                "ready_status": "not-required",
+            },
+            "successor-proof": {
+                "software": {
+                    "rights_acquisition": "successor",
+                    "rights_acquisition_details": "受让取得",
+                },
+                "ready_status": "ready",
+            },
+            "partial-rights-proof": {
+                "software": {
+                    "rights_scope": "partial",
+                    "rights_scope_details": "仅享有复制权和信息网络传播权",
+                },
+                "ready_status": "not-required",
+            },
+        }
+
+        for code, changes in cases.items():
+            with self.subTest(code=code):
+                application = json.loads(json.dumps(base, ensure_ascii=False))
+                for field, value in changes.get("software", {}).items():
+                    application["software"][field] = value
+                if "description" in changes:
+                    application["software"]["description"] = changes["description"]
+
+                unresolved = core.portal_conditional_violations(application)
+                self.assertTrue(any(code in message for message in unresolved))
+
+                application["proof_checklist"].append(
+                    {
+                        "code": code,
+                        "item": code,
+                        "status": changes["ready_status"],
+                        "note": "Current portal reviewed; proof remains outside the repository.",
+                    }
+                )
+                resolved = core.portal_conditional_violations(application)
+                self.assertFalse(any(code in message for message in resolved))
 
     def test_exceptional_deposit_stops_the_ordinary_workflow(self) -> None:
         workspace = self.initialized_workspace()
@@ -497,11 +824,25 @@ class CommandAndPackageTests(unittest.TestCase):
             second = build_skill_archives.build(output)
             second_bytes = {Path(item["path"]).name: Path(item["path"]).read_bytes() for item in second}
             self.assertEqual(first_bytes, second_bytes)
-            self.assertEqual(["ccopyright-register.skill"], sorted(first_bytes))
+            self.assertEqual(
+                ["ccopyright-qa.skill", "ccopyright-register.skill"],
+                sorted(first_bytes),
+            )
             self.assertFalse((output / "ccopyright.skill").exists())
             self.assertFalse((output / "软著.skill").exists())
-            archive_path = output / "ccopyright-register.skill"
-            with zipfile.ZipFile(archive_path) as archive:
+
+            for name in ("ccopyright-qa", "ccopyright-register"):
+                with zipfile.ZipFile(output / f"{name}.skill") as archive:
+                    self.assertIsNone(archive.testzip())
+                    names = set(archive.namelist())
+                    self.assertFalse(
+                        any(path.startswith("/") or ".." in Path(path).parts for path in names)
+                    )
+                    manifest = json.loads(archive.read("PACKAGE-MANIFEST.json"))
+                    self.assertEqual(manifest["skill"], name)
+                    self.assertEqual(manifest["locales"], ["en", "zh-CN"])
+
+            with zipfile.ZipFile(output / "ccopyright-register.skill") as archive:
                 self.assertIsNone(archive.testzip())
                 names = set(archive.namelist())
                 required = {
@@ -510,14 +851,21 @@ class CommandAndPackageTests(unittest.TestCase):
                     "README.md",
                     "README.en.md",
                     "agents/openai.yaml",
+                    "references/en/application-schema.md",
+                    "references/en/material-preparation.md",
+                    "references/en/official-sources.md",
                     "scripts/ccopyright_core.py",
                     "references/en/workflow.md",
                     "references/en/portal-form.md",
+                    "references/en/quality-checks.md",
+                    "references/zh-CN/application-schema.md",
+                    "references/zh-CN/material-preparation.md",
+                    "references/zh-CN/official-sources.md",
                     "references/zh-CN/workflow.md",
                     "references/zh-CN/portal-form.md",
+                    "references/zh-CN/quality-checks.md",
                 }
                 self.assertTrue(required.issubset(names))
-                self.assertFalse(any(name.startswith("/") or ".." in Path(name).parts for name in names))
                 self.assertIn(b"name: ccopyright-register", archive.read("SKILL.md"))
                 package = json.loads(archive.read("package.json"))
                 self.assertEqual(package["name"], "shuangchi-gsc-ccopyright-register")
@@ -548,6 +896,147 @@ class CommandAndPackageTests(unittest.TestCase):
                         / "ccopyright_core.py"
                     ).read_bytes(),
                     archive.read("scripts/ccopyright_core.py"),
+                )
+
+            with zipfile.ZipFile(output / "ccopyright-qa.skill") as archive:
+                names = set(archive.namelist())
+                required = {
+                    "SKILL.md",
+                    "README.md",
+                    "README.en.md",
+                    "agents/openai.yaml",
+                    "references/en/answering-guide.md",
+                    "references/en/official-sources.md",
+                    "references/en/registration-baseline.md",
+                    "references/en/source-policy.md",
+                    "references/en/topic-map.md",
+                    "references/zh-CN/answering-guide.md",
+                    "references/zh-CN/official-sources.md",
+                    "references/zh-CN/registration-baseline.md",
+                    "references/zh-CN/source-policy.md",
+                    "references/zh-CN/topic-map.md",
+                }
+                self.assertTrue(required.issubset(names))
+                self.assertIn(b"name: ccopyright-qa", archive.read("SKILL.md"))
+                self.assertIn(b"$ccopyright-qa", archive.read("agents/openai.yaml"))
+                self.assertIn("[English](README.en.md)", archive.read("README.md").decode())
+                self.assertIn("[简体中文](README.md)", archive.read("README.en.md").decode())
+                self.assertFalse(any(name.startswith("scripts/") for name in names))
+
+    def test_repository_documents_exactly_two_independent_skills(self) -> None:
+        skills_root = ROOT / "skills"
+        names = sorted(
+            path.parent.name
+            for path in skills_root.glob("*/SKILL.md")
+            if path.is_file()
+        )
+        self.assertEqual(["ccopyright-qa", "ccopyright-register"], names)
+
+        for readme_name in ("README.md", "README.en.md"):
+            readme = (ROOT / readme_name).read_text(encoding="utf-8")
+            self.assertIn("ccopyright-qa", readme)
+            self.assertIn("ccopyright-register", readme)
+
+        qa_root = skills_root / "ccopyright-qa"
+        register_root = skills_root / "ccopyright-register"
+        self.assertFalse((qa_root / "scripts").exists())
+        self.assertTrue((register_root / "scripts" / "ccopyright.py").is_file())
+
+    def test_skill_descriptions_route_qa_and_preparation_intents(self) -> None:
+        qa_root = ROOT / "skills" / "ccopyright-qa"
+        register_root = ROOT / "skills" / "ccopyright-register"
+        qa_frontmatter = (qa_root / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1]
+        register_frontmatter = (
+            (register_root / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1]
+        )
+
+        self.assertIn("Do not scan repositories", qa_frontmatter)
+        self.assertIn("use ccopyright-register", qa_frontmatter)
+        self.assertIn("Use when the user explicitly asks", register_frontmatter)
+        self.assertIn("Do not use for general registration Q&A", register_frontmatter)
+        self.assertIn("use ccopyright-qa", register_frontmatter)
+        self.assertNotIn("Use for 软件著作权, 软著", register_frontmatter)
+
+    def test_qa_official_source_catalog_and_portal_profile_boundary(self) -> None:
+        qa_root = ROOT / "skills" / "ccopyright-qa"
+        expected_urls = {
+            "https://www.ccopyright.com.cn/index.php?optionid=1057",
+            "https://www.ccopyright.com.cn/index.php?optionid=1080",
+            "https://www.ccopyright.com.cn/index.php?optionid=1081",
+            "https://www.ccopyright.com.cn/index.php?optionid=1087&page=1",
+            "https://www.ccopyright.com.cn/index.php?optionid=1571",
+            "https://www.ncac.gov.cn/xxfb/flfg/bmgz/202410/t20241015_869486.html",
+            "https://xzfg.moj.gov.cn/mobile/law/detail?LawID=581",
+            "https://www.npc.gov.cn/c2/c30834/202011/t20201119_308796.html",
+        }
+        catalog_url_sets = []
+        catalog_paths = [
+            ROOT / "skills" / skill / "references" / locale / "official-sources.md"
+            for skill in ("ccopyright-qa", "ccopyright-register")
+            for locale in ("zh-CN", "en")
+        ]
+        for catalog_path in catalog_paths:
+            catalog = catalog_path.read_text(encoding="utf-8")
+            for url in expected_urls:
+                self.assertIn(url, catalog)
+            self.assertIn("2026-09-01", catalog)
+            catalog_url_sets.append(set(re.findall(r"https://[^)\s]+", catalog)))
+        self.assertTrue(all(urls == catalog_url_sets[0] for urls in catalog_url_sets[1:]))
+
+        template = json.loads(
+            (ROOT / "skills" / "ccopyright-register" / "assets" / "application.template.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        profile_id = template["requirements"]["portal_validation_profile"]
+        profile_docs = [
+            qa_root / "references" / locale / "registration-baseline.md"
+            for locale in ("zh-CN", "en")
+        ] + [
+            ROOT / "skills" / "ccopyright-register" / "references" / locale / "portal-form.md"
+            for locale in ("zh-CN", "en")
+        ]
+        for profile_doc in profile_docs:
+            content = profile_doc.read_text(encoding="utf-8").replace(",", "")
+            self.assertIn(profile_id, content)
+            for configured_value in (50, 100, 120, 500, 1300):
+                self.assertIn(str(configured_value), content)
+
+        qa_docs = [qa_root / "SKILL.md", *qa_root.rglob("*.md")]
+        forbidden_history = (
+            "2026-08-31",
+            "12 张",
+            "twelve user-provided",
+            "received partial form screenshots",
+            "screenshot baseline",
+            "截图基线",
+        )
+        for path in dict.fromkeys(qa_docs):
+            content = path.read_text(encoding="utf-8").lower()
+            for phrase in forbidden_history:
+                self.assertNotIn(phrase.lower(), content, f"Legacy screenshot history in {path}")
+
+    def test_skill_markdown_local_links_resolve(self) -> None:
+        readmes = {
+            ROOT / "README.md",
+            ROOT / "README.en.md",
+            ROOT / "skills" / "ccopyright-qa" / "README.md",
+            ROOT / "skills" / "ccopyright-qa" / "README.en.md",
+            ROOT / "skills" / "ccopyright-register" / "README.md",
+            ROOT / "skills" / "ccopyright-register" / "README.en.md",
+            *list((ROOT / "skills" / "ccopyright-qa").rglob("*.md")),
+            *list((ROOT / "skills" / "ccopyright-register").rglob("*.md")),
+        }
+        link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+        for readme in sorted(readmes):
+            content = readme.read_text(encoding="utf-8")
+            for destination in link_pattern.findall(content):
+                if destination.startswith(("http://", "https://", "#")):
+                    continue
+                target = destination.split("#", 1)[0]
+                self.assertTrue(
+                    (readme.parent / target).is_file(),
+                    f"Broken local link in {readme.relative_to(ROOT)}: {destination}",
                 )
 
     def test_contextlab_manifest_covers_every_skill_source_file(self) -> None:

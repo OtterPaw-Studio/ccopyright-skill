@@ -24,7 +24,7 @@ Reusable rendering separates semantic content and manifests from presentation. T
 4. Do not reformat, minify, beautify, translate, redact, or pad selected code. If disclosure requires redaction or exceptional deposit, stop this standard workflow.
 5. Treat a long-line warning as a visual-review signal. The row remains one row; verify that it is readable in the rendered PDF.
 
-The form's “source-program amount” is not the same thing as the number of pages in the deposited identification material. With `selected-source-physical-lines`, the generator requires the reported value to equal physical lines in the ordered selected stream. With `applicant-confirmed-total`, it displays both the applicant-confirmed total and the selected-stream count so the applicant can confirm the counting basis and material boundary. The screenshots do not establish the official counting definition, so never auto-confirm the scanner suggestion as an application fact.
+The form's “source-program amount” is not the same thing as the number of pages in the deposited identification material. With `selected-source-physical-lines`, the generator requires the reported value to equal physical lines in the ordered selected stream. With `applicant-confirmed-total`, it displays both the applicant-confirmed total and the selected-stream count so the applicant can confirm the counting basis and material boundary. The bundled portal profile does not establish the official counting definition, so never auto-confirm the scanner suggestion as an application fact.
 
 This skill supports ordinary program deposit only and generates either the complete material or the configured consecutive front/back windows. Exceptional deposit stops the workflow.
 

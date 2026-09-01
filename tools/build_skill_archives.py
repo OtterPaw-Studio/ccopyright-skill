@@ -14,9 +14,54 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parent.parent
 STABLE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
-PACKAGE_ROOT = ROOT / "skills" / "ccopyright-register"
-PACKAGE_FILENAME = "ccopyright-register.skill"
 PACKAGE_LOCALES = ("en", "zh-CN")
+PACKAGE_SPECS = (
+    {
+        "name": "ccopyright-qa",
+        "required": {
+            "SKILL.md",
+            "README.md",
+            "README.en.md",
+            "agents/openai.yaml",
+            "references/en/answering-guide.md",
+            "references/en/official-sources.md",
+            "references/en/registration-baseline.md",
+            "references/en/source-policy.md",
+            "references/en/topic-map.md",
+            "references/zh-CN/answering-guide.md",
+            "references/zh-CN/official-sources.md",
+            "references/zh-CN/registration-baseline.md",
+            "references/zh-CN/source-policy.md",
+            "references/zh-CN/topic-map.md",
+        },
+    },
+    {
+        "name": "ccopyright-register",
+        "required": {
+            "SKILL.md",
+            "package.json",
+            "README.md",
+            "README.en.md",
+            "agents/openai.yaml",
+            "references/en/application-schema.md",
+            "references/en/material-preparation.md",
+            "references/en/official-sources.md",
+            "references/en/workflow.md",
+            "references/en/portal-form.md",
+            "references/en/quality-checks.md",
+            "references/zh-CN/application-schema.md",
+            "references/zh-CN/material-preparation.md",
+            "references/zh-CN/official-sources.md",
+            "references/zh-CN/workflow.md",
+            "references/zh-CN/portal-form.md",
+            "references/zh-CN/quality-checks.md",
+            "scripts/ccopyright.py",
+            "scripts/ccopyright_core.py",
+            "assets/application.template.json",
+            "assets/material.css",
+        },
+    },
+)
 DEPRECATED_ARCHIVES = ("ccopyright.skill", "软著.skill")
 IGNORED_PARTS = {"__pycache__", ".DS_Store"}
 IGNORED_SUFFIXES = {".pyc", ".pyo"}
@@ -39,31 +84,21 @@ def files_under(directory: Path) -> Iterable[Path]:
         yield path
 
 
-def collect_entries(package_root: Path, locales: tuple[str, ...]) -> dict[str, bytes]:
+def collect_entries(
+    package_root: Path,
+    locales: tuple[str, ...],
+    required: set[str],
+) -> dict[str, bytes]:
     entries: dict[str, bytes] = {}
     for path in files_under(package_root):
         entries[path.relative_to(package_root).as_posix()] = path.read_bytes()
-    required = {
-        "SKILL.md",
-        "package.json",
-        "README.md",
-        "README.en.md",
-        "agents/openai.yaml",
-        "references/en/workflow.md",
-        "references/en/portal-form.md",
-        "references/zh-CN/workflow.md",
-        "references/zh-CN/portal-form.md",
-        "scripts/ccopyright.py",
-        "scripts/ccopyright_core.py",
-        "assets/application.template.json",
-        "assets/material.css",
-    }
     missing = sorted(required - entries.keys())
     if missing:
         raise RuntimeError(f"Package is missing required files: {missing}")
     manifest = {
         "format": "codex-skill-zip",
         "format_version": 1,
+        "skill": package_root.name,
         "locales": list(locales),
         "files": [
             {"path": name, "bytes": len(data), "sha256": sha256(data)}
@@ -111,8 +146,14 @@ def build(output_dir: Path) -> list[dict[str, object]]:
         deprecated = output_dir / filename
         if deprecated.is_file() or deprecated.is_symlink():
             deprecated.unlink()
-    entries = collect_entries(PACKAGE_ROOT, PACKAGE_LOCALES)
-    return [write_archive(output_dir / PACKAGE_FILENAME, entries)]
+    results = []
+    for spec in PACKAGE_SPECS:
+        name = str(spec["name"])
+        package_root = ROOT / "skills" / name
+        required = set(spec["required"])
+        entries = collect_entries(package_root, PACKAGE_LOCALES, required)
+        results.append(write_archive(output_dir / f"{name}.skill", entries))
+    return results
 
 
 def main() -> int:

@@ -1,6 +1,6 @@
 ---
 name: ccopyright-register
-description: Prepare China computer-software copyright registration materials from a code repository. Use for 软件著作权, 软著, China software copyright, ccopyright.com.cn preparation, repository/IP prechecks, application worksheets, source-code or document identification materials, PDF validation, and ready-to-submit packaging. Do not use it to submit forms, track applications, or parse correction notices.
+description: Prepare China computer-software copyright registration materials from a code repository. Use when the user explicitly asks to assess a repository, run repository/IP prechecks, create or update an application worksheet, select source code, generate program or document identification materials, render or validate PDFs, or package reviewed materials. Do not use for general registration Q&A, self-service-versus-agency decisions, or service-quote breakdowns; use ccopyright-qa for those. Do not submit forms, track applications, or parse correction notices.
 ---
 
 # China Software Copyright Material Preparation
@@ -12,6 +12,12 @@ Prepare a reviewable registration-material package from repository evidence and 
 - Respond in the user's language. Use Chinese by default when the request is in Chinese and English when it is in English.
 - For a Chinese workflow, read only the relevant files under `references/zh-CN/`; for an English workflow, read only the corresponding files under `references/en/`. Load both only for translation or comparison.
 - Registration-facing worksheets and identification materials should normally remain in Chinese even when the surrounding explanation is English, unless the current official requirement says otherwise.
+
+## Intent gate
+
+- Continue only when the user asks for a repository assessment or a concrete material-preparation, rendering, validation, or packaging action.
+- For requirement explanations, form-field questions, self-service or agency decisions, and service-quote breakdowns, use `ccopyright-qa` and do not inspect or modify the repository.
+- If one request mixes Q&A and material work, answer the conceptual question first and obtain the user's agreement before starting repository writes.
 
 ## Start here
 
@@ -40,9 +46,9 @@ Prepare a reviewable registration-material package from repository evidence and 
 
 Use `facts/application.json` as the only canonical application-facts source. Repository guesses remain unconfirmed suggestions.
 
-1. Capture a requirements snapshot. Prefer the applicant's current portal text or screenshots, then current official sources. Read the applicable `official-sources.md` and `portal-form.md`. Distinguish the evidence receipt date from the actual portal review/capture date; do not confirm currency until the latter is known.
+1. Capture a requirements snapshot. Read the applicable `official-sources.md` and `portal-form.md`. Use official rules for legal/material baselines, official page-level guides for published operating guidance, and the applicant-reviewed current portal for dynamic UI behavior. Treat the bundled portal profile as compatibility data, not evidence; do not confirm currency until the actual portal review date is known.
 2. Run the read-only scan and initialize the workspace.
-3. Review `reports/precheck.md` and schema-v2 `facts/application.json` with the user. `init` and `status` migrate schema v1 in place without confirming new fields. Ask only for facts that cannot be established safely.
+3. Review `reports/precheck.md` and schema-v3 `facts/application.json` with the user. `init` and `status` migrate older schemas in place without confirming new fields. Ask only for facts that cannot be established safely.
 4. Select first-party source files in deliberate functional order. Preserve every selected line, including blanks, comments, and tabs.
 5. Draft document sections from implemented behavior and map each material claim to repository evidence. Use real screenshots only.
 6. Build draft materials first. Drafts must display unresolved markers rather than invent values.
@@ -55,8 +61,8 @@ Each language directory contains `workflow.md`, `application-schema.md`, `portal
 
 - Group missing-fact questions into a short checklist. Do not ask for values already present and confirmed.
 - Explain every suggestion with its source, such as `package.json`, `pyproject.toml`, or Git HEAD.
-- When the current portal conflicts with the maintained baseline, update `requirements` and `requirements-snapshot.md`; the current portal wins.
-- Treat portal evidence as partial unless every relevant branch and help text was captured. Keep unresolved limits or choices in `requirements.portal_unknowns`.
+- When the current portal conflicts with the bundled validation profile, update `requirements` and `requirements-snapshot.md`; the current portal wins for the application.
+- Keep limits, choices, or help text not established by current official guidance in `requirements.portal_unknowns`.
 - Generate a copy-ready worksheet in portal order, but never create fields for identity-document numbers, scans, signatures, credentials, or portal-session data.
 - Show source-selection boundaries before final generation, especially front/back cut points.
 - Report warnings without hiding them, but do not demand that every warning be removed.

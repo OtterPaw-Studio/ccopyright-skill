@@ -2,10 +2,14 @@
 
 Status: Iteration 5 implementation validated; Aone publication pending
 Date: 2026-09-01
-Iteration 2 evidence: twelve user-supplied portal-form screenshots received on
-2026-08-31. Their capture date is unknown, their coverage is partial, and the
-original images are not retained in the skill because one contains personal
-identity data.
+Repository product model superseded by specification 002: this file documents
+the `ccopyright-register` Skill and its historical single-Skill iterations; the
+repository now ships `ccopyright-qa` and `ccopyright-register` independently.
+
+Iteration 2 design input (terminology corrected by specification 003): a form
+walkthrough was used only to extract a portal compatibility profile of fields,
+branches, and visible counters. The attachments were not evidence, are not
+cited or retained, and have no receipt/audit record in the Skill.
 
 Iteration 3 documentation reference: the user-facing information architecture
 of the OpenMAIC bilingual README and the current skills.sh documentation/CLI.
@@ -36,8 +40,8 @@ layout with `SKILL.md` at the archive root.
 
 ## In scope
 
-1. Capture a dated requirements snapshot from maintained references or
-   user-provided field text/screenshots.
+1. Capture a dated requirements snapshot from maintained references or current
+   redacted portal text explicitly reviewed for the application.
 2. Read-only repository inventory for project type, version suggestions,
    languages, manifests, documentation, screenshots, tests, source candidates,
    Git state, submodules, generated/vendor areas, and symlinks.
@@ -64,9 +68,9 @@ layout with `SKILL.md` at the archive root.
 12. Record input/output hashes, source snapshot, tool versions, and generation
     configuration for reproducibility.
 13. Provide English and Chinese repository documentation.
-14. Maintain a structured, copy-ready worksheet for portal fields observed in
-    the current user-provided form evidence, while distinguishing confirmed
-    observations from unknown portal constraints.
+14. Maintain a structured, copy-ready worksheet using a configurable portal
+    validation profile, while distinguishing applicant-confirmed current
+    portal values from unknown operational constraints.
 15. Provide consumer-first English and Chinese READMEs covering the outcome,
     skills.sh installation, first prompts, prerequisites, complete workflow,
     outputs, examples, safety boundaries, and frequently asked questions.
@@ -91,11 +95,11 @@ layout with `SKILL.md` at the archive root.
 - Storing applicant identity-document numbers, identity scans, or unredacted
   portal screenshots in the repository or preparation workspace.
 
-## Portal-form evidence model
+## Portal-form validation profile
 
-The maintained screenshot baseline is evidence of a partial portal form, not a
-claim that every current page or validation rule was captured. It establishes
-the following visible dimensions for ordinary applications:
+The maintained profile is non-authoritative compatibility data extracted from a
+design walkthrough. It is not an official source or screenshot baseline. It
+configures the following dimensions for ordinary applications:
 
 - rights acquisition: original or successor;
 - software identity: full name, optional short name, and version;
@@ -116,15 +120,15 @@ the following visible dimensions for ordinary applications:
 - conditional PDF proof readiness for cooperative, commissioned, assigned-task,
   modified, successor, or other applicable cases.
 
-Visible constraints are maintained as configurable requirements rather than
+Configured constraints are maintained as requirements rather than
 permanent constants: six environment fields, purpose, industry, and modification
 summary show a 50-character limit; other programming languages show 120;
-other technical features show 100; main functions displays `500~1300`; and
-visible upload controls accept PDF. The main-function minimum and all limits
+other technical features show 100; main functions uses `500~1300`; and the
+profile configures PDF upload slots. The main-function minimum and all limits
 must still be confirmed against the current portal before final generation.
 
-The screenshots do not establish upload size, filename rules, complete tooltip
-content, every option behind collapsed controls, successor/partial-rights
+The profile does not establish upload size, filename rules, complete tooltip
+content, every current option, successor/partial-rights
 branches, exceptional-deposit requirements, or later signature/confirmation
 pages. These remain explicit unknowns in the requirements snapshot.
 
@@ -307,8 +311,8 @@ Acceptance criteria:
 - Repository scanning is bounded and skips files above a configurable size.
 - Work products do not contain local absolute paths unless explicitly intended
   for internal reports.
-- Maintained portal evidence contains no applicant name, identity number, or
-  unredacted screenshot.
+- Maintained portal compatibility configuration contains no applicant name,
+  identity number, or unredacted screenshot.
 - Final PDFs and ready-to-submit files contain no unresolved placeholders.
 - Build output is reproducible enough to detect pagination drift: input hashes,
   configuration, renderer path/version, and output hashes are recorded.

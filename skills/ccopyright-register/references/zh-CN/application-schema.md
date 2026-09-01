@@ -1,6 +1,10 @@
 # 申请事实数据结构（中文）
 
-`facts/application.json` 是可人工编辑的唯一事实源。当前结构版本为 `schema_version: 2`；`init` 和 `status` 会把版本 1 原地补全到版本 2，保留已有事实，不自动确认新增字段，也不另外维护一份“影子事实”。
+`facts/application.json` 是可人工编辑的唯一事实源。当前结构版本为
+`schema_version: 3`；`init` 和 `status` 会把旧版本原地补全到版本 3，保留已有
+事实和申请人调整过的门禁，不自动确认新增字段，也不另外维护一份“影子事实”。
+版本 2 中的 `requirements.portal_evidence` 会被删除，并迁移为不含附件历史的门户
+校验配置。
 
 ## `software`
 
@@ -25,12 +29,12 @@
 
 ### 环境、语言与功能
 
-- `environment` 包含六个独立字段：`development_hardware`、`runtime_hardware`、`development_os`、`development_tools`、`runtime_platform`、`supporting_software`。当前截图中每项可见上限为 50 字。
-- `programming_languages`：门户枚举中选择的语言列表；`other_programming_languages` 只记录枚举外语言，当前可见上限为 120 字。
-- `purpose`、`industry`：当前可见上限各为 50 字。
-- `technical_features`：门户提供的技术特点标签；`other_technical_features` 当前可见上限为 100 字。
-- `main_functions`：面向申请表的连续说明文字。当前截图显示计数器 `500~1300`，本地按最少 500、最多 1300 字检查，但最终提交前仍需在当前门户确认。
-- `competitive_advantages`、`commercial_value`：内部辅助字段，不是这组截图中可见的门户字段，不应混入复制底稿。
+- `environment` 包含六个独立字段：`development_hardware`、`runtime_hardware`、`development_os`、`development_tools`、`runtime_platform`、`supporting_software`。内置校验配置中每项上限为 50 字。
+- `programming_languages`：门户枚举中选择的语言列表；`other_programming_languages` 只记录枚举外语言，内置上限为 120 字。
+- `purpose`、`industry`：内置上限各为 50 字。
+- `technical_features`：门户提供的技术特点标签；`other_technical_features` 内置上限为 100 字。
+- `main_functions`：面向申请表的连续说明文字。内置配置按最少 500、最多 1300 字检查，但最终提交前仍需在当前门户确认。
+- `competitive_advantages`、`commercial_value`：内部辅助字段，不属于当前门户校验配置，不应混入复制底稿。
 
 所有描述都必须以仓库事实为依据，并经申请人认可。
 
@@ -51,10 +55,10 @@
 
 这是带日期、可配置的规则快照，不是永远不变的门户说明。
 
-- `captured_at`、`source_urls`：规则来源与采集日期；未复核当前门户时保持空值且不得确认 `requirements.current`。
-- `portal_evidence`：证据基线标识、接收/采集日期、覆盖范围，以及是否保留原图或个人数据。两项隐私标志必须为 `false`。
-- `portal_field_limits`：从门户证据读取到的字段字数上下限。
-- `portal_unknowns`：截图没有证明、提交前仍需人工确认的格式、大小、枚举或帮助文本。
+- `captured_at`、`source_urls`：规则来源与当前门户实际复核日期；字段名为兼容旧工作区而保留。未复核当前门户时保持空值且不得确认 `requirements.current`。
+- `portal_validation_profile`：当前使用的门户兼容性配置 ID；不是官方来源或证据标识。
+- `portal_field_limits`、`portal_field_minimums`：配置中的字段字数上下限。键必须是指向字符串事实的点分路径，同一字段的最小值不得大于最大值。只配置最小值也有效；空值仅在该字段本身必填或条件必填时阻断，最小值不会把可选字段变成必填字段。删除默认门禁后，后续运行不会自动恢复它。草稿将字数冲突和未满足的条件分支列为 `WARNING`，最终模式阻断。
+- `portal_unknowns`：配置尚未建立、提交前仍需人工确认的格式、大小、枚举或帮助文本。
 - `paper`：普通流程基线通常为 A4。
 - `program_lines_per_page`、`document_lines_per_page`：每页编号行目标。
 - `front_pages`、`back_pages`：前后选择窗口。
@@ -101,4 +105,11 @@
 
 ## `proof_checklist` 与 `review`
 
-这里只记录证明材料是否已准备及非敏感备注。清单会根据开发方式、修改软件、继受取得、部分权利或多著作权人等分支动态增加项目。不得写入证件号码、证件扫描件、签名、账号凭据、门户会话信息或用户截图中的个人数据。
+这里只记录证明材料是否已准备及非敏感备注。清单会根据开发方式、修改软件、继受取得、部分权利或多著作权人等分支动态增加项目。不得写入证件号码、证件扫描件、签名、账号凭据、门户会话信息或未脱敏门户界面中的个人数据。
+
+每个清单项的状态只能是 `not-recorded`、`ready` 或 `not-required`：
+`ready` 表示申请人已在仓库外准备好材料；只有实际核对当前门户、确认该分支不要求
+单独上传证明时，才能使用 `not-required`。合作、委托、下达任务、原权利人授权和
+继受取得分支必须使用 `ready`；内置配置只允许“此前已登记”和“部分权利”这两个
+仍取决于当前门户的项目使用 `not-required`。活动分支的证明状态未解决时，草稿会
+显示 `WARNING`，最终生成会阻断。

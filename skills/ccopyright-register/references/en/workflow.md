@@ -30,7 +30,11 @@ python scripts/ccopyright.py init \
 
 Do not use `--force` after the applicant has edited `facts/application.json` unless they explicitly want to replace it. Re-running `init` without `--force` refreshes the inventory while preserving the application facts file.
 
-`init` creates the schema-v2 fact template and a privacy-safe `facts/requirements-snapshot.md`. Existing schema-v1 workspaces are upgraded in place: existing facts are preserved, new fields are added, and new confirmation flags remain `false`.
+`init` creates the schema-v3 fact template and a privacy-safe
+`facts/requirements-snapshot.md`. Existing v1/v2 workspaces are upgraded in
+place: existing facts and customized gates are preserved, new fields are added,
+the legacy `portal_evidence` attachment-history model is removed, and new
+confirmation flags remain `false`.
 
 ## 4. Complete canonical facts
 
@@ -41,9 +45,16 @@ python scripts/ccopyright.py status \
   --workspace /absolute/path/to/repository/.ccopyright
 ```
 
-Keep guesses unconfirmed. Review every item against the [portal-form evidence baseline](portal-form.md): name/version, category, original or modified status, development type, rights acquisition and scope, rights holders, completion/publication facts, six environment fields, languages, purpose, industry, main functions, technical features, source amount, and deposit method. Final mode also requires ordered source files, document sections, and all required confirmation flags.
+Keep guesses unconfirmed. Review every item against the [portal form validation
+profile](portal-form.md): name/version, category, original or modified status,
+development type, rights acquisition and scope, rights holders,
+completion/publication facts, six environment fields, languages, purpose,
+industry, main functions, technical features, source amount, and deposit
+method. Then check the [current official sources](official-sources.md) and the
+current portal. Final mode also requires ordered source files, document
+sections, and all required confirmation flags.
 
-`status` reports ordinary missing values, conditional-branch gaps, and portal-field constraint violations. Conditional branches cover published or modified software, successor acquisition, partial rights, and cooperative, commissioned, or assigned-task development. Identity-document numbers, identity scans, and signatures never enter the workspace.
+`status` reports ordinary missing values, conditional-branch gaps, active proof-readiness gaps, and portal-field constraint violations. Conditional branches cover published or modified software, successor acquisition, partial rights, and cooperative, commissioned, or assigned-task development. Identity-document numbers, identity scans, and signatures never enter the workspace.
 
 ## 5. Generate a draft
 
@@ -83,7 +94,7 @@ python scripts/ccopyright.py render \
 
 `reports/render-report.json` records renderer identity and PDF hashes.
 
-This skill stops when either program or document identification material uses exceptional deposit; it prepares only the ordinary flow. Cooperative, commissioned, assigned-task, modified-software, successor-acquisition, and partial-rights branches add corresponding proof-checklist items, but the tool does not decide whether a document is legally sufficient.
+This skill stops when either program or document identification material uses exceptional deposit; it prepares only the ordinary flow. Cooperative, commissioned, assigned-task, modified-software, successor-acquisition, and partial-rights branches add corresponding proof-checklist items. An active item must use its allowed `ready` or portal-confirmed `not-required` status before final generation, but the tool does not decide whether a document is legally sufficient.
 
 ## 7. Validate
 

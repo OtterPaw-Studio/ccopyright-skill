@@ -108,10 +108,11 @@ portal-field section. Proof readiness is metadata only: conditional cooperation,
 commission, assigned-task, modification authorization, and successor documents
 are listed without copying their PDFs into the repository.
 
-The generated requirements snapshot records the maintained screenshot baseline,
-its partial scope, its unknown capture date, the fact that originals are not
-retained, visible limits, and unresolved portal constraints. Current-portal
-confirmation remains a required user action.
+The generated requirements snapshot records the non-authoritative portal
+validation profile ID, configured gates, official source URLs, and unresolved
+constraints. The applicant must review the current portal before confirming
+the requirements snapshot. Specification 003 supersedes the earlier
+screenshot-evidence terminology.
 
 ## Language routing and packaging
 
@@ -139,7 +140,7 @@ identical archive.
 ## Iteration 2 completion
 
 The schema-v2 template, in-place migration, portal-aligned worksheet,
-privacy-safe evidence snapshot, conditional proof list, ordinary-deposit
+privacy-safe validation profile, conditional proof list, ordinary-deposit
 boundary, and bilingual references are implemented. Unit/package tests, the
 explicit Chromium/Poppler integration test, deterministic archive rebuild, and
 official skill validation all pass.
@@ -166,8 +167,8 @@ Skill source is independently installable through skills.sh, and maintenance
 instructions live in `AGENTS.md`. Isolated discovery, copy installation,
 installed `preflight`/`init`, tests, PDF integration, deterministic packaging,
 ZIP integrity, local-link checks, privacy audit, and official validation pass.
-Only the public GitHub owner placeholder remains for publication-time
-substitution.
+The public skills.sh source was subsequently finalized as
+`OtterPaw-Studio/ccopyright-skill` by task T026.
 
 ## Iteration 5: complete Aone package contents
 

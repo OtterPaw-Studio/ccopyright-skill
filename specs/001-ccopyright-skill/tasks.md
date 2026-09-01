@@ -22,9 +22,9 @@
 - [x] T012 Add unit and optional integration fixtures/tests.
 - [x] T013 Run tests, skill validation, archive integrity validation, and final
       review; update all task statuses.
-- [x] T014 Record the partial portal screenshot baseline, visible fields,
-      constraints, unknowns, and privacy boundary in the spec and bilingual
-      references.
+- [x] T014 Extract the form walkthrough's fields, constraints, and unknowns into
+      a portal validation profile; specification 003 later corrected the
+      original screenshot-evidence terminology.
 - [x] T015 Upgrade the application template to schema version 2 and migrate
       version-1 workspaces without replacing existing facts.
 - [x] T016 Implement portal controlled values, conditional completeness,

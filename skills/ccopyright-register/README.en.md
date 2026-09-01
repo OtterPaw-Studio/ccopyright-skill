@@ -8,6 +8,21 @@ Use this skill when you want an AI coding agent to inspect a software repository
 
 It supports preparation before manual submission to the [China Copyright Protection Center](https://www.ccopyright.com.cn/). It does not fill or submit the portal, operate an applicant account, track an application, or parse correction notices.
 
+The repository also provides the read-only `ccopyright-qa` Skill. Start there
+when you are still learning the rules, deciding whether assistance is needed,
+or breaking down a service quote. This guide covers material preparation only.
+
+~~~bash
+npx skills add OtterPaw-Studio/ccopyright-skill --skill ccopyright-register
+~~~
+
+Install Q&A and preparation together:
+
+~~~bash
+npx skills add OtterPaw-Studio/ccopyright-skill \
+  --skill ccopyright-qa ccopyright-register
+~~~
+
 ## Start using it
 
 Open the software repository in your agent and ask for an assessment:
@@ -72,13 +87,13 @@ Identity numbers, identity scans, signatures, credentials, cookies, and unredact
 ## Workflow
 
 1. **Assess** — read-only repository inventory and **INFO**/**WARNING** precheck.
-2. **Initialize** — create **.ccopyright/** and the schema-v2 canonical fact file.
+2. **Initialize** — create **.ccopyright/** and the schema-v3 canonical fact file; existing workspaces migrate while preserving facts.
 3. **Draft** — generate the copy-ready form worksheet, conditional proof checklist, source/document materials, and traceability records.
 4. **Confirm** — resolve missing facts, current portal rules, source order, and unsupported document claims.
 5. **Render and validate** — create A4 PDFs and check dimensions, row identity, canonical strings, hashes, and unresolved markers.
 6. **Review and publish** — inspect every contact-sheet page, then explicitly publish a new immutable revision.
 
-Warnings never block generation by themselves. Missing required facts, invalid portal constraints, exceptional deposit, or a failed PDF check can stop the corresponding final stage.
+Repository, ownership, and IP precheck **WARNING** findings prompt review and do not block generation. Portal character conflicts, missing conditional fields, and unresolved active proof-readiness items appear as draft **WARNING** findings and block final generation; missing required facts, exceptional deposit, and failed PDF checks also stop the corresponding stage.
 
 ## Outputs
 
@@ -94,7 +109,11 @@ Warnings never block generation by themselves. Missing required facts, invalid p
 
 ### Application worksheet
 
-Portal-ordered Chinese values, visible character counts, confirmation state, and conditional branches. The current portal always overrides the bundled partial screenshot baseline.
+Portal-ordered Chinese values, character counts, confirmation state, and
+conditional branches. The bundled portal validation profile reports character
+conflicts, unresolved conditional fields, and proof-readiness items as draft warnings, then enforces
+them as final gates. It is not official authority; the current portal always
+overrides it.
 
 ### Program material
 
@@ -106,7 +125,7 @@ Applicant-approved documentation and real product screenshots, backed by reposit
 
 ### Proof checklist
 
-External readiness items for cooperative, commissioned, assigned-task, modified, successor-acquisition, partial-rights, and other applicable branches. Proof files are not copied into the repository.
+External readiness items for cooperative, commissioned, assigned-task, modified, successor-acquisition, partial-rights, and other applicable branches. Proof files are not copied into the repository. Status is limited to `not-recorded`, `ready`, or `not-required`; active branches must reach an allowed ready state before final generation.
 
 ## Optional direct commands
 
@@ -121,7 +140,12 @@ python scripts/ccopyright.py validate --workspace /path/to/repo/.ccopyright
 python scripts/ccopyright.py publish --workspace /path/to/repo/.ccopyright --human-reviewed
 ~~~
 
-Full command guidance is in [references/en/workflow.md](references/en/workflow.md). Portal fields and data structure are documented in [references/en/portal-form.md](references/en/portal-form.md) and [references/en/application-schema.md](references/en/application-schema.md).
+Full command guidance is in [references/en/workflow.md](references/en/workflow.md).
+Official direct pages, the portal validation profile, and the data structure
+are documented in
+[references/en/official-sources.md](references/en/official-sources.md),
+[references/en/portal-form.md](references/en/portal-form.md), and
+[references/en/application-schema.md](references/en/application-schema.md).
 
 ## Safety and limitations
 

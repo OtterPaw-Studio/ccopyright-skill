@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "state": "draft",
   "software": {
     "full_name": "",
@@ -54,17 +54,15 @@
   },
   "requirements": {
     "captured_at": "",
-    "portal_evidence": {
-      "baseline_id": "user-supplied-form-screenshots-received-2026-08-31",
-      "received_at": "2026-08-31",
-      "captured_at": "",
-      "scope": "partial-form",
-      "originals_retained": false,
-      "personal_data_retained": false
-    },
+    "portal_validation_profile": "ccpc-form-profile-v1",
     "source_urls": [
       "https://www.ncac.gov.cn/xxfb/flfg/bmgz/202410/t20241015_869486.html",
-      "https://www.ccopyright.com.cn/"
+      "https://xzfg.moj.gov.cn/mobile/law/detail?LawID=581",
+      "https://www.npc.gov.cn/c2/c30834/202011/t20201119_308796.html",
+      "https://www.ccopyright.com.cn/index.php?optionid=1030",
+      "https://www.ccopyright.com.cn/index.php?optionid=1057",
+      "https://www.ccopyright.com.cn/index.php?optionid=1080",
+      "https://www.ccopyright.com.cn/index.php?optionid=1081"
     ],
     "paper": "A4",
     "program_lines_per_page": 50,

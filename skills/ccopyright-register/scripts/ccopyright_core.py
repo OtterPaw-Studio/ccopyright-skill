@@ -17,8 +17,8 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
-TOOL_VERSION = "0.2.0"
-APPLICATION_SCHEMA_VERSION = 2
+TOOL_VERSION = "0.3.0"
+APPLICATION_SCHEMA_VERSION = 3
 ASSET_DIR = Path(__file__).resolve().parent.parent / "assets"
 
 SOFTWARE_CATEGORY_LABELS = {
@@ -62,6 +62,7 @@ ENVIRONMENT_FIELDS = (
     "runtime_platform",
     "supporting_software",
 )
+PROOF_STATUS_VALUES = {"not-recorded", "ready", "not-required"}
 
 
 class CcopyrightError(RuntimeError):
@@ -203,6 +204,9 @@ PRIVATE_NETWORK_PATTERN = re.compile(
     r"https?://(?:localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|"
     r"192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+)(?::\d+)?"
 )
+PORTAL_FIELD_PATH_PATTERN = re.compile(
+    r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+$"
+)
 
 
 def utc_now() -> str:
@@ -263,6 +267,17 @@ def upgrade_application(application: dict[str, Any]) -> tuple[dict[str, Any], bo
         return application, False
     upgraded = copy.deepcopy(application)
     original = copy.deepcopy(application)
+    version = upgraded.get("schema_version", 1)
+    if (
+        isinstance(version, int)
+        and not isinstance(version, bool)
+        and version > APPLICATION_SCHEMA_VERSION
+    ):
+        raise CcopyrightError(
+            f"Application schema version {version} is newer than supported "
+            f"version {APPLICATION_SCHEMA_VERSION}. Upgrade the Skill before "
+            "opening this workspace."
+        )
     software = upgraded.setdefault("software", {})
     if isinstance(software, dict):
         publication = software.get("publication")
@@ -295,10 +310,31 @@ def upgrade_application(application: dict[str, Any]) -> tuple[dict[str, Any], bo
                 code = proof_codes.get(str(item.get("item", "")))
                 if code:
                     item["code"] = code
+    requirements = upgraded.get("requirements")
+    preserved_gate_maps: dict[str, Any] = {}
+    if isinstance(requirements, dict):
+        # These maps are applicant-owned configuration. Preserve them exactly,
+        # including removed default keys, instead of recursively restoring
+        # template entries every time a workspace is opened.
+        for field in ("portal_field_limits", "portal_field_minimums"):
+            if field in requirements:
+                preserved_gate_maps[field] = copy.deepcopy(requirements[field])
+        # Schema v2 incorrectly modeled form-walkthrough design inputs as
+        # retained portal evidence. Schema v3 keeps only their extracted,
+        # non-authoritative validation profile. Remove the legacy object from
+        # every supported schema, including partially migrated v3 workspaces.
+        requirements.pop("portal_evidence", None)
     defaults = load_json(ASSET_DIR / "application.template.json")
     _merge_missing(upgraded, defaults)
-    version = upgraded.get("schema_version", 1)
-    if isinstance(version, int) and not isinstance(version, bool) and version <= APPLICATION_SCHEMA_VERSION:
+    merged_requirements = upgraded.get("requirements")
+    if isinstance(merged_requirements, dict):
+        for field, value in preserved_gate_maps.items():
+            merged_requirements[field] = value
+    if (
+        isinstance(version, int)
+        and not isinstance(version, bool)
+        and version <= APPLICATION_SCHEMA_VERSION
+    ):
         upgraded["schema_version"] = APPLICATION_SCHEMA_VERSION
     return upgraded, upgraded != original
 
@@ -816,32 +852,41 @@ def workspace_paths(workspace: Path) -> dict[str, Path]:
 def requirements_snapshot_markdown(application: dict[str, Any]) -> str:
     requirements = application.get("requirements", {})
     confirmations = application.get("confirmations", {})
-    evidence = requirements.get("portal_evidence", {})
+    requirements = requirements if isinstance(requirements, dict) else {}
+    confirmations = confirmations if isinstance(confirmations, dict) else {}
+    profile = requirements.get("portal_validation_profile", "")
     captured_at = requirements.get("captured_at") or "not confirmed"
     current = isinstance(confirmations, dict) and confirmations.get("requirements.current") is True
     lines = [
         "# Requirements snapshot",
         "",
-        f"Current portal captured: `{captured_at}`",
+        f"Current portal reviewed: `{captured_at}`",
         f"Current portal confirmed by applicant: `{'yes' if current else 'no'}`",
         "",
-        "The maintained baseline is not a substitute for the current portal. User-provided current text or redacted screenshots take precedence.",
+        "The bundled validation profile is compatibility data, not an official source or permanent portal rule. Current official instructions and applicant-reviewed portal text take precedence.",
         "",
-        "## Maintained portal-form evidence",
+        "## Portal validation profile",
         "",
-        f"- Baseline ID: `{evidence.get('baseline_id', '')}`",
-        f"- Evidence received: `{evidence.get('received_at', '') or 'unknown'}`",
-        f"- Original capture date: `{evidence.get('captured_at', '') or 'unknown'}`",
-        f"- Coverage: `{evidence.get('scope', 'unknown')}`",
-        f"- Original screenshots retained: `{'yes' if evidence.get('originals_retained') else 'no'}`",
-        f"- Personal identity data retained: `{'yes' if evidence.get('personal_data_retained') else 'no'}`",
-        "",
-        "One supplied screenshot contained applicant identity data. The skill records only the privacy-safe field analysis; it does not retain the image, name, or identity number.",
+        f"- Profile ID: `{profile}`",
+        "- Authority: `portal compatibility only`",
+        "- Override rule: update the configured gates from the current portal, record the actual review date, and obtain applicant confirmation before final generation.",
         "",
         "## Sources",
         "",
     ]
-    lines.extend(f"- {url}" for url in requirements.get("source_urls", []))
+    source_urls = requirements.get("source_urls", [])
+    source_urls = (
+        [url for url in source_urls if isinstance(url, str)]
+        if isinstance(source_urls, list)
+        else []
+    )
+    lines.extend(f"- {url}" for url in source_urls)
+    accepted_formats = requirements.get("accepted_upload_formats", [])
+    accepted_formats = (
+        [value for value in accepted_formats if isinstance(value, str)]
+        if isinstance(accepted_formats, list)
+        else []
+    )
     lines.extend(
         [
             "",
@@ -852,10 +897,10 @@ def requirements_snapshot_markdown(application: dict[str, Any]) -> str:
             f"- Document rows per page: {requirements.get('document_lines_per_page', '')}",
             f"- Front pages: {requirements.get('front_pages', '')}",
             f"- Back pages: {requirements.get('back_pages', '')}",
-            f"- Accepted visible upload formats: {', '.join(requirements.get('accepted_upload_formats', [])) or 'not confirmed'}",
+            f"- Configured upload formats: {', '.join(accepted_formats) or 'not confirmed'}",
             f"- Maximum PDF bytes: {requirements.get('max_pdf_bytes') or 'not confirmed'}",
             "",
-            "## Visible portal field limits",
+            "## Configured portal field gates",
             "",
             "| Field path | Minimum characters | Maximum characters |",
             "|---|---:|---:|",
@@ -863,9 +908,12 @@ def requirements_snapshot_markdown(application: dict[str, Any]) -> str:
     )
     maximums = requirements.get("portal_field_limits", {})
     minimums = requirements.get("portal_field_minimums", {})
-    if isinstance(maximums, dict):
-        for field in sorted(maximums):
-            lines.append(f"| `{field}` | {minimums.get(field, '') if isinstance(minimums, dict) else ''} | {maximums[field]} |")
+    maximums = maximums if isinstance(maximums, dict) else {}
+    minimums = minimums if isinstance(minimums, dict) else {}
+    for field in sorted(set(maximums) | set(minimums)):
+        lines.append(
+            f"| `{field}` | {minimums.get(field, '')} | {maximums.get(field, '')} |"
+        )
     lines.extend(["", "## Unresolved portal constraints", ""])
     unknowns = requirements.get("portal_unknowns", [])
     if isinstance(unknowns, list):
@@ -1131,24 +1179,63 @@ def application_validation_errors(application: dict[str, Any]) -> list[str]:
         accepted_formats = requirements.get("accepted_upload_formats", [])
         if not isinstance(accepted_formats, list) or any(not isinstance(value, str) or not value for value in accepted_formats):
             errors.append("requirements.accepted_upload_formats must be a list of non-empty strings.")
+        gate_maps: dict[str, dict[str, int]] = {}
         for field in ("portal_field_limits", "portal_field_minimums"):
             limits = requirements.get(field, {})
-            if not isinstance(limits, dict) or any(
-                not isinstance(key, str)
-                or not isinstance(value, int)
-                or isinstance(value, bool)
-                or value < 0
-                for key, value in limits.items()
+            if not isinstance(limits, dict):
+                errors.append(
+                    f"requirements.{field} must map field paths to non-negative integers."
+                )
+                continue
+            gate_maps[field] = limits
+            for key, value in limits.items():
+                if (
+                    not isinstance(key, str)
+                    or not PORTAL_FIELD_PATH_PATTERN.fullmatch(key)
+                ):
+                    errors.append(
+                        f"requirements.{field} keys must be dotted application field paths."
+                    )
+                    continue
+                target_value = nested_value(application, key)
+                if target_value is None:
+                    errors.append(
+                        f"requirements.{field}.{key} does not resolve to an application field."
+                    )
+                elif not isinstance(target_value, str):
+                    errors.append(
+                        f"requirements.{field}.{key} must target a string field."
+                    )
+                if (
+                    not isinstance(value, int)
+                    or isinstance(value, bool)
+                    or value < 0
+                ):
+                    errors.append(
+                        f"requirements.{field}.{key} must be a non-negative integer."
+                    )
+        maximums = gate_maps.get("portal_field_limits", {})
+        minimums = gate_maps.get("portal_field_minimums", {})
+        for key in sorted(set(maximums) & set(minimums)):
+            maximum = maximums[key]
+            minimum = minimums[key]
+            if (
+                isinstance(maximum, int)
+                and not isinstance(maximum, bool)
+                and isinstance(minimum, int)
+                and not isinstance(minimum, bool)
+                and minimum > maximum
             ):
-                errors.append(f"requirements.{field} must map field paths to non-negative integers.")
-        evidence = requirements.get("portal_evidence", {})
-        if not isinstance(evidence, dict):
-            errors.append("requirements.portal_evidence must be an object.")
-        else:
-            if evidence.get("originals_retained") is not False:
-                errors.append("requirements.portal_evidence.originals_retained must remain false.")
-            if evidence.get("personal_data_retained") is not False:
-                errors.append("requirements.portal_evidence.personal_data_retained must remain false.")
+                errors.append(
+                    f"requirements portal gate for {key} has minimum {minimum} "
+                    f"greater than maximum {maximum}."
+                )
+        profile = requirements.get("portal_validation_profile")
+        if not isinstance(profile, str) or not profile.strip():
+            errors.append("requirements.portal_validation_profile must be a non-empty string.")
+        unknowns = requirements.get("portal_unknowns", [])
+        if not isinstance(unknowns, list) or any(not isinstance(value, str) for value in unknowns):
+            errors.append("requirements.portal_unknowns must be a list of strings.")
 
     source = application.get("source")
     if not isinstance(source, dict):
@@ -1219,6 +1306,32 @@ def application_validation_errors(application: dict[str, Any]) -> list[str]:
         if not isinstance(additional_documents, list) or any(not isinstance(value, dict) for value in additional_documents):
             errors.append("document.additional_documents must be a list of objects.")
 
+    proof_items = application.get("proof_checklist")
+    if not isinstance(proof_items, list):
+        errors.append("proof_checklist must be a list.")
+    else:
+        proof_codes: list[str] = []
+        for index, item in enumerate(proof_items):
+            if not isinstance(item, dict):
+                errors.append(f"proof_checklist[{index}] must be an object.")
+                continue
+            code = item.get("code")
+            if not isinstance(code, str) or not code.strip():
+                errors.append(f"proof_checklist[{index}].code must be a non-empty string.")
+            else:
+                proof_codes.append(code)
+            status = item.get("status")
+            if status not in PROOF_STATUS_VALUES:
+                errors.append(
+                    f"proof_checklist[{index}].status must be one of: "
+                    f"{', '.join(sorted(PROOF_STATUS_VALUES))}."
+                )
+            for field in ("item", "note"):
+                if not isinstance(item.get(field, ""), str):
+                    errors.append(f"proof_checklist[{index}].{field} must be a string.")
+        if len(proof_codes) != len(set(proof_codes)):
+            errors.append("proof_checklist codes must not contain duplicates.")
+
     confirmations = application.get("confirmations")
     if confirmations is not None and not isinstance(confirmations, dict):
         errors.append("confirmations must be an object.")
@@ -1265,6 +1378,140 @@ def _missing_portal_values(application: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(missing))
 
 
+def conditional_proof_requirements(
+    application: dict[str, Any],
+) -> list[tuple[str, str, set[str]]]:
+    """Return active proof-readiness gates and their accepted statuses."""
+    software = application.get("software", {})
+    if not isinstance(software, dict):
+        return []
+    description = software.get("description", {})
+    requirements: list[tuple[str, str, set[str]]] = []
+
+    development_proofs = {
+        "cooperative": (
+            "cooperative-agreement",
+            "cooperative-development contract or agreement",
+        ),
+        "commissioned": (
+            "commissioned-agreement",
+            "commissioned-development contract or agreement",
+        ),
+        "assigned-task": (
+            "assigned-task-document",
+            "project task document or ownership contract",
+        ),
+    }
+    development_proof = development_proofs.get(software.get("development_type"))
+    if development_proof:
+        requirements.append((*development_proof, {"ready"}))
+
+    if isinstance(description, dict) and description.get("type") == "modified":
+        basis = description.get("modification_basis")
+        if basis == "authorization-required":
+            requirements.append(
+                (
+                    "original-holder-authorization",
+                    "original rights-holder authorization",
+                    {"ready"},
+                )
+            )
+        elif basis == "registered":
+            requirements.append(
+                (
+                    "previous-registration",
+                    "previous-registration evidence",
+                    {"ready", "not-required"},
+                )
+            )
+
+    if software.get("rights_acquisition") == "successor":
+        requirements.append(
+            (
+                "successor-proof",
+                "successor-acquisition proof",
+                {"ready"},
+            )
+        )
+    if software.get("rights_scope") == "partial":
+        requirements.append(
+            (
+                "partial-rights-proof",
+                "partial-rights basis or agreement",
+                {"ready", "not-required"},
+            )
+        )
+    return requirements
+
+
+def portal_conditional_violations(application: dict[str, Any]) -> list[str]:
+    """Return unresolved branch-specific portal fields for draft warnings."""
+    violations: list[str] = []
+    software = application.get("software", {})
+    if not isinstance(software, dict):
+        return violations
+    publication = software.get("publication", {})
+    if isinstance(publication, dict) and publication.get("status") == "published":
+        for field in ("date", "country", "region"):
+            if not publication.get(field):
+                violations.append(
+                    f"software.publication.{field} is required when publication status is published."
+                )
+    description = software.get("description", {})
+    if isinstance(description, dict) and description.get("type") == "modified":
+        if not description.get("modification_summary"):
+            violations.append(
+                "software.description.modification_summary is required for modified software."
+            )
+        if description.get("modification_basis") in {
+            None,
+            "",
+            "unconfirmed",
+            "not-applicable",
+        }:
+            violations.append(
+                "software.description.modification_basis must identify the applicable basis for modified software."
+            )
+    if not software.get("programming_languages") and not str(
+        software.get("other_programming_languages", "")
+    ).strip():
+        violations.append(
+            "Select at least one programming language or provide another programming language."
+        )
+    if not software.get("technical_features") and not str(
+        software.get("other_technical_features", "")
+    ).strip():
+        violations.append(
+            "Select at least one technical feature or provide another technical feature."
+        )
+    if software.get("rights_acquisition") == "successor" and not str(
+        software.get("rights_acquisition_details", "")
+    ).strip():
+        violations.append(
+            "software.rights_acquisition_details is required for successor acquisition."
+        )
+    if software.get("rights_scope") == "partial" and not str(
+        software.get("rights_scope_details", "")
+    ).strip():
+        violations.append(
+            "software.rights_scope_details is required when the rights scope is partial."
+        )
+    configured_proofs = application.get("proof_checklist", [])
+    proof_statuses = {
+        str(item.get("code")): item.get("status")
+        for item in configured_proofs
+        if isinstance(item, dict) and item.get("code")
+    } if isinstance(configured_proofs, list) else {}
+    for code, label, accepted_statuses in conditional_proof_requirements(application):
+        status = proof_statuses.get(code, "not-recorded")
+        if status not in accepted_statuses:
+            accepted = " or ".join(f"`{value}`" for value in sorted(accepted_statuses))
+            violations.append(
+                f"proof_checklist item `{code}` for {label} must have status {accepted}."
+            )
+    return list(dict.fromkeys(violations))
+
+
 def portal_constraint_violations(application: dict[str, Any]) -> list[str]:
     violations: list[str] = []
     software = application.get("software", {})
@@ -1275,13 +1522,27 @@ def portal_constraint_violations(application: dict[str, Any]) -> list[str]:
         if isinstance(maximums, dict):
             for field, maximum in maximums.items():
                 value = nested_value(application, field)
-                if isinstance(value, str) and isinstance(maximum, int) and len(value) > maximum:
-                    violations.append(f"{field} has {len(value)} characters; visible portal maximum is {maximum}.")
+                if (
+                    isinstance(value, str)
+                    and isinstance(maximum, int)
+                    and not isinstance(maximum, bool)
+                    and len(value) > maximum
+                ):
+                    violations.append(f"{field} has {len(value)} characters; portal validation profile maximum is {maximum}.")
         if isinstance(minimums, dict):
             for field, minimum in minimums.items():
                 value = nested_value(application, field)
-                if isinstance(value, str) and value and isinstance(minimum, int) and len(value) < minimum:
-                    violations.append(f"{field} has {len(value)} characters; visible portal minimum is {minimum}.")
+                # A minimum gate constrains supplied text; it does not make an
+                # otherwise optional field mandatory. Requiredness is modeled
+                # separately by the base and conditional field checks.
+                if (
+                    isinstance(value, str)
+                    and value
+                    and isinstance(minimum, int)
+                    and not isinstance(minimum, bool)
+                    and len(value) < minimum
+                ):
+                    violations.append(f"{field} has {len(value)} characters; portal validation profile minimum is {minimum}.")
     if isinstance(software, dict):
         holders = software.get("rights_holders", [])
         joint = software.get("joint_rights_holders")
@@ -1307,6 +1568,7 @@ def application_status(application: dict[str, Any]) -> dict[str, Any]:
             "unconfirmed_required_facts": list(FINAL_REQUIRED_CONFIRMATIONS),
             "invalid_required_values": ["Application JSON root must be an object."],
             "portal_constraint_violations": [],
+            "portal_conditional_violations": [],
             "final_complete": False,
         }
     application, upgraded = upgrade_application(application)
@@ -1315,6 +1577,7 @@ def application_status(application: dict[str, Any]) -> dict[str, Any]:
     unconfirmed = [key for key in FINAL_REQUIRED_CONFIRMATIONS if not isinstance(confirmations, dict) or confirmations.get(key) is not True]
     invalid = application_validation_errors(application)
     portal_violations = portal_constraint_violations(application)
+    conditional_violations = portal_conditional_violations(application)
     return {
         "state": application.get("state", "draft"),
         "schema_version": application.get("schema_version"),
@@ -1323,7 +1586,14 @@ def application_status(application: dict[str, Any]) -> dict[str, Any]:
         "unconfirmed_required_facts": unconfirmed,
         "invalid_required_values": invalid,
         "portal_constraint_violations": portal_violations,
-        "final_complete": not missing and not unconfirmed and not invalid and not portal_violations,
+        "portal_conditional_violations": conditional_violations,
+        "final_complete": (
+            not missing
+            and not unconfirmed
+            and not invalid
+            and not portal_violations
+            and not conditional_violations
+        ),
     }
 
 
@@ -1777,7 +2047,7 @@ def build_worksheet(
         "",
         "著作权人证件号码、证件扫描件和未脱敏门户截图不得写入本文件或仓库。",
         "",
-        "| 门户字段 | 建议值 | 字符数 | 可见限制 | 状态 |",
+        "| 门户字段 | 建议值 | 字符数 | 配置限制 | 状态 |",
         "|---|---|---:|---|---|",
     ]
     for label, value, confirmation_key, limit_key in rows:
@@ -1785,14 +2055,14 @@ def build_worksheet(
         escaped = text.replace("|", "\\|").replace("\n", "<br>")
         if limit_key and isinstance(limits, dict) and limit_key in limits:
             minimum = minimums.get(limit_key) if isinstance(minimums, dict) else None
-            visible_limit = f"{minimum}–{limits[limit_key]}" if minimum else f"≤ {limits[limit_key]}"
+            configured_limit = f"{minimum}–{limits[limit_key]}" if minimum else f"≤ {limits[limit_key]}"
         else:
-            visible_limit = "未见/不适用"
+            configured_limit = "未配置/不适用"
         if confirmation_key is None:
             state = "optional/review"
         else:
             state = "confirmed" if confirmations.get(confirmation_key) is True else "review"
-        lines.append(f"| {label} | {escaped} | {len(text)} | {visible_limit} | {state} |")
+        lines.append(f"| {label} | {escaped} | {len(text)} | {configured_limit} | {state} |")
     reported = source.get("program_line_count")
     computed = program_data.get("source_stream_rows") if isinstance(program_data, dict) else None
     lines.extend(
@@ -1815,11 +2085,11 @@ def build_worksheet(
     maximum = limits.get("software.main_functions", "") if isinstance(limits, dict) else ""
     lines.extend(
         [
-            f"字符数：`{len(main_functions)}`；当前维护基线：`{minimum}–{maximum}`。",
+            f"字符数：`{len(main_functions)}`；当前门户校验配置：`{minimum}–{maximum}`。",
             "",
             main_functions or "[REVIEW REQUIRED]",
             "",
-            "## 内部可选说明（不是本批截图确认的门户字段）",
+            "## 内部可选说明（不属于当前门户校验配置）",
             "",
             f"- 竞争优势：{software.get('competitive_advantages', '') or '[未填写]'}",
             f"- 商业价值：{software.get('commercial_value', '') or '[未填写]'}",
@@ -1863,25 +2133,25 @@ def build_proof_checklist(application: dict[str, Any], drafts_dir: Path) -> Path
     add(
         "portal-confirmation",
         "Application confirmation/signature/declaration page",
-        "Confirm whether a later portal step requires this; the supplied screenshots do not show it.",
+        "Confirm whether the current portal requires this in a later step; the bundled validation profile does not establish it.",
         "current-portal-dependent",
     )
     development_type = software.get("development_type") if isinstance(software, dict) else None
     if development_type == "cooperative":
-        add("cooperative-agreement", "Cooperative-development contract or agreement PDF", "Required by the visible cooperative-development branch; retain outside the repository.")
+        add("cooperative-agreement", "Cooperative-development contract or agreement PDF", "Included by the cooperative-development validation branch; confirm the current portal and retain the file outside the repository.")
     elif development_type == "commissioned":
-        add("commissioned-agreement", "Commissioned-development contract or agreement PDF", "Required by the visible commissioned-development branch; retain outside the repository.")
+        add("commissioned-agreement", "Commissioned-development contract or agreement PDF", "Included by the commissioned-development validation branch; confirm the current portal and retain the file outside the repository.")
     elif development_type == "assigned-task":
-        add("assigned-task-document", "Project task document or ownership contract PDF", "Required by the visible assigned-task branch; retain outside the repository.")
+        add("assigned-task-document", "Project task document or ownership contract PDF", "Included by the assigned-task validation branch; confirm the current portal and retain the file outside the repository.")
     if isinstance(description, dict) and description.get("type") == "modified":
         if description.get("modification_basis") == "authorization-required":
             add("original-holder-authorization", "Original rights-holder authorization PDF", "Confirm the current modified-software branch and retain the authorization outside the repository.")
         elif description.get("modification_basis") == "registered":
-            add("previous-registration", "Previous software registration evidence", "The visible branch states that the software is already registered; confirm the exact current proof requirement.", "current-portal-dependent")
+            add("previous-registration", "Previous software registration evidence", "The bundled validation branch records an already-registered choice; confirm the exact current proof requirement.", "current-portal-dependent")
     if isinstance(software, dict) and software.get("rights_acquisition") == "successor":
         add("successor-proof", "Succession, transfer, inheritance, or assumption proof PDF", "Use the proof matching the confirmed successor-acquisition basis; retain outside the repository.")
     if isinstance(software, dict) and software.get("rights_scope") == "partial":
-        add("partial-rights-proof", "Partial-rights basis or agreement", "The supplied screenshots do not show the partial-rights branch; confirm the current portal requirement.", "current-portal-dependent")
+        add("partial-rights-proof", "Partial-rights basis or agreement", "The bundled validation profile does not establish the complete partial-rights branch; confirm the current portal requirement.", "current-portal-dependent")
     known_codes = {item["code"] for item in items}
     for item in configured:
         if not isinstance(item, dict) or item.get("code") in known_codes:
@@ -1900,7 +2170,7 @@ def build_proof_checklist(application: dict[str, Any], drafts_dir: Path) -> Path
         "",
         "Keep identity and ownership proof documents outside the code repository. This checklist records readiness only.",
         "",
-        "This file records readiness only. Upload controls visible in the supplied portal screenshots accept PDF; size and filename rules remain unconfirmed.",
+        "This file records readiness only. The bundled portal profile uses PDF for these proof slots; size and filename rules remain unconfirmed and must be checked in the current portal.",
         "",
         "| Item | Required | Status | Note |",
         "|---|---|---|---|",
@@ -2126,8 +2396,8 @@ def build_review_checklist(application: dict[str, Any], drafts_dir: Path) -> Pat
         "Joint-ownership selection agrees with the complete rights-holder list.",
         "Completion date was confirmed by the applicant and was not inferred from Git.",
         "Publication status and conditional date, country, and region were confirmed by the applicant.",
-        "All six portal environment fields fit the visible 50-character limits.",
-        "Main functions and other visible text fields satisfy the confirmed current portal limits.",
+        "All six portal environment fields fit the configured limits confirmed against the current portal.",
+        "Main functions and other configured text fields satisfy the current portal limits confirmed by the applicant.",
         "Reported source-program line count and its stated basis were reviewed.",
         "Program and document deposit types are both ordinary general deposit; exceptional deposit uses a separate specialist process.",
         "Every conditional cooperation, commission, assigned-task, modification, successor, or partial-rights proof is ready outside the repository.",
@@ -2141,7 +2411,13 @@ def build_review_checklist(application: dict[str, Any], drafts_dir: Path) -> Pat
     ]
     lines = ["# Final human-review checklist", "", "Publishing requires the applicant to check every item manually.", ""]
     lines.extend(f"- [ ] {item}" for item in items)
-    lines.extend(["", "Warnings do not prevent publication, but they should remain visible to the applicant.", ""])
+    lines.extend(
+        [
+            "",
+            "Repository/IP precheck warnings remain visible for human review and do not block publication by themselves. Unresolved portal constraints or conditional proof-readiness findings must be resolved before final generation.",
+            "",
+        ]
+    )
     path = drafts_dir / "final-review-checklist.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines), encoding="utf-8")
@@ -2175,7 +2451,8 @@ def build_all(repo: Path, workspace: Path, *, final: bool, render: bool = False,
             f"Missing values: {status['missing_required_values']}; "
             f"unconfirmed: {status['unconfirmed_required_facts']}; "
             f"invalid: {status['invalid_required_values']}; "
-            f"portal constraints: {status['portal_constraint_violations']}"
+            f"portal constraints: {status['portal_constraint_violations']}; "
+            f"portal conditionals: {status['portal_conditional_violations']}"
         )
     program = build_program_material(repo, application, paths["work"], final=final)
     worksheet = build_worksheet(application, paths["drafts"], program_data=program["data"])
@@ -2185,6 +2462,22 @@ def build_all(repo: Path, workspace: Path, *, final: bool, render: bool = False,
     paths["requirements"].write_text(requirements_snapshot_markdown(application), encoding="utf-8")
     application["state"] = "generated"
     write_json(paths["application"], application)
+    profile_warnings = [
+        finding(
+            "WARNING",
+            "portal-validation-profile",
+            violation,
+        )
+        for violation in status["portal_constraint_violations"]
+    ]
+    conditional_warnings = [
+        finding(
+            "WARNING",
+            "portal-conditional",
+            violation,
+        )
+        for violation in status["portal_conditional_violations"]
+    ]
     result: dict[str, Any] = {
         "schema_version": APPLICATION_SCHEMA_VERSION,
         "generated_at": utc_now(),
@@ -2199,7 +2492,12 @@ def build_all(repo: Path, workspace: Path, *, final: bool, render: bool = False,
         "review_checklist": str(review),
         "program": {key: str(value) for key, value in program.items() if key != "data"},
         "document": {key: str(value) for key, value in document.items() if key != "data"},
-        "warnings": program["data"]["warnings"] + document["data"]["warnings"],
+        "warnings": (
+            profile_warnings
+            + conditional_warnings
+            + program["data"]["warnings"]
+            + document["data"]["warnings"]
+        ),
         "rendered": {},
     }
     if render:

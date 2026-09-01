@@ -1,0 +1,210 @@
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+:root {
+  --paper-width: 210mm;
+  --paper-height: 297mm;
+  --ink: #1d2630;
+  --muted: #667281;
+  --rule: #c8d0da;
+  --soft: #f5f7fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #dfe4ea;
+  color: var(--ink);
+  font-family: "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.page {
+  position: relative;
+  width: var(--paper-width);
+  height: var(--paper-height);
+  margin: 8mm auto;
+  padding: 12mm 13mm 11mm;
+  overflow: hidden;
+  background: white;
+  break-after: page;
+  page-break-after: always;
+}
+
+.page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  height: 8mm;
+  border-bottom: 0.3mm solid var(--rule);
+  font-size: 7.5pt;
+  font-weight: 700;
+}
+
+.header .identity {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header .holder {
+  flex: 0 0 auto;
+  margin-left: 4mm;
+  color: var(--muted);
+  font-size: 7pt;
+  font-weight: 500;
+}
+
+.content {
+  height: 252mm;
+  padding-top: 3mm;
+}
+
+.meta {
+  height: 7mm;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 6.5pt;
+  line-height: 7mm;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 0.15mm solid #edf0f4;
+  white-space: pre;
+}
+
+.row-id {
+  flex: 0 0 13mm;
+  color: #87919d;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 6.3pt;
+}
+
+.program .row {
+  height: 4.83mm;
+  line-height: 4.83mm;
+}
+
+.program .code {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #202a35;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono",
+    "Noto Sans Mono CJK SC", monospace;
+  transform-origin: left center;
+  tab-size: 4;
+  white-space: pre;
+}
+
+.document .row {
+  height: 7.95mm;
+  line-height: 7.95mm;
+  font-size: 7.2pt;
+}
+
+.document .row.heading {
+  color: #173a5e;
+  font-weight: 700;
+}
+
+.document.illustrated .content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46mm;
+  column-gap: 5mm;
+}
+
+.document.illustrated .text-panel {
+  min-width: 0;
+}
+
+.figure-card {
+  align-self: start;
+  margin: 10mm 0 0;
+  padding: 2.2mm;
+  border: 0.3mm solid var(--rule);
+  border-radius: 2mm;
+  background: var(--soft);
+}
+
+.figure-card img {
+  display: block;
+  width: 100%;
+  max-height: 178mm;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.figure-card figcaption {
+  margin-top: 2mm;
+  font-size: 7pt;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.figure-card .figure-note {
+  margin-top: 1mm;
+  color: var(--muted);
+  font-size: 6.3pt;
+  line-height: 1.4;
+}
+
+.footer {
+  position: absolute;
+  right: 13mm;
+  bottom: 5.5mm;
+  left: 13mm;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 6.2pt;
+}
+
+.draft-mark {
+  position: absolute;
+  top: 126mm;
+  left: 35mm;
+  z-index: 10;
+  color: rgba(188, 45, 45, 0.08);
+  font-size: 50pt;
+  font-weight: 800;
+  letter-spacing: 8mm;
+  pointer-events: none;
+  transform: rotate(-28deg);
+}
+
+@media print {
+  html,
+  body {
+    background: white;
+  }
+
+  .page {
+    margin: 0;
+  }
+}

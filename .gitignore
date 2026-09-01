@@ -1,0 +1,38 @@
+# macOS and editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python caches, environments, and test output
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+
+# Local secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+
+# Generated Skill packages and software-copyright workspaces
+dist/
+.ccopyright/
+
+# Local skills.sh installation output
+.agents/skills/
+.codex/skills/
+skills-lock.json
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp

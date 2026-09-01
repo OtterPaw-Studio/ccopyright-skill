@@ -1,0 +1,4 @@
+[project]
+name = "sample-copyright-app"
+version = "1.2.3"
+requires-python = ">=3.10"

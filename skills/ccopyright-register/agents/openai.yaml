@@ -1,0 +1,7 @@
+interface:
+  display_name: "Software Copyright Registration Prep"
+  short_description: "Prepare and validate China software copyright materials"
+  brand_color: "#B42318"
+  default_prompt: "Use $ccopyright-register to assess this repository and prepare a reviewable China software copyright registration package in my language."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,166 @@
+{
+  "schema_version": 2,
+  "state": "draft",
+  "software": {
+    "full_name": "",
+    "short_name": "",
+    "version": "",
+    "category": "unconfirmed",
+    "description": {
+      "type": "unconfirmed",
+      "modification_summary": "",
+      "modification_basis": "not-applicable"
+    },
+    "rights_holders": [],
+    "joint_rights_holders": null,
+    "completion_date": "",
+    "publication": {
+      "status": "unconfirmed",
+      "date": "",
+      "country": "",
+      "region": ""
+    },
+    "development_type": "unconfirmed",
+    "rights_acquisition": "unconfirmed",
+    "rights_acquisition_details": "",
+    "rights_scope": "unconfirmed",
+    "rights_scope_details": "",
+    "environment": {
+      "development_hardware": "",
+      "runtime_hardware": "",
+      "development_os": "",
+      "development_tools": "",
+      "runtime_platform": "",
+      "supporting_software": ""
+    },
+    "programming_languages": [],
+    "other_programming_languages": "",
+    "purpose": "",
+    "industry": "",
+    "technical_features": [],
+    "other_technical_features": "",
+    "main_functions": "",
+    "competitive_advantages": "",
+    "commercial_value": ""
+  },
+  "dates": {
+    "code_snapshot_date": "",
+    "material_preparation_date": ""
+  },
+  "snapshot": {
+    "mode": "head",
+    "commit": "",
+    "include_uncommitted": false
+  },
+  "requirements": {
+    "captured_at": "",
+    "portal_evidence": {
+      "baseline_id": "user-supplied-form-screenshots-received-2026-08-31",
+      "received_at": "2026-08-31",
+      "captured_at": "",
+      "scope": "partial-form",
+      "originals_retained": false,
+      "personal_data_retained": false
+    },
+    "source_urls": [
+      "https://www.ncac.gov.cn/xxfb/flfg/bmgz/202410/t20241015_869486.html",
+      "https://www.ccopyright.com.cn/"
+    ],
+    "paper": "A4",
+    "program_lines_per_page": 50,
+    "document_lines_per_page": 30,
+    "front_pages": 30,
+    "back_pages": 30,
+    "allow_short_final_page_for_complete_material": true,
+    "max_pdf_bytes": null,
+    "accepted_upload_formats": [
+      "pdf"
+    ],
+    "portal_field_limits": {
+      "software.description.modification_summary": 50,
+      "software.environment.development_hardware": 50,
+      "software.environment.runtime_hardware": 50,
+      "software.environment.development_os": 50,
+      "software.environment.development_tools": 50,
+      "software.environment.runtime_platform": 50,
+      "software.environment.supporting_software": 50,
+      "software.other_programming_languages": 120,
+      "software.purpose": 50,
+      "software.industry": 50,
+      "software.main_functions": 1300,
+      "software.other_technical_features": 100
+    },
+    "portal_field_minimums": {
+      "software.main_functions": 500
+    },
+    "portal_unknowns": [
+      "PDF upload size and filename rules",
+      "Complete help-tooltip content",
+      "Successor-acquisition and partial-rights conditional fields",
+      "Exceptional-deposit requirements",
+      "Later confirmation, signature, and declaration pages"
+    ]
+  },
+  "source": {
+    "mode": "auto",
+    "deposit_type": "general",
+    "ordering": "explicit-functional-order",
+    "files": [],
+    "suggested_files": [],
+    "program_line_count": null,
+    "program_line_count_basis": "selected-source-physical-lines",
+    "suggested_program_line_count": 0,
+    "exclude_globs": [],
+    "notes": ""
+  },
+  "document": {
+    "kind": "user-manual",
+    "deposit_type": "general",
+    "title": "",
+    "max_display_units_per_line": 72,
+    "sections": [],
+    "screenshots": [],
+    "additional_documents": []
+  },
+  "confirmations": {
+    "software.full_name": false,
+    "software.version": false,
+    "software.classification": false,
+    "software.rights": false,
+    "software.rights_holders": false,
+    "software.completion_date": false,
+    "software.development": false,
+    "software.publication": false,
+    "software.environment": false,
+    "software.functionality": false,
+    "source.selection": false,
+    "source.program_line_count": false,
+    "materials.deposit": false,
+    "document.content": false,
+    "requirements.current": false
+  },
+  "proof_checklist": [
+    {
+      "code": "applicant-identity",
+      "item": "Applicant identity document",
+      "status": "not-recorded",
+      "note": "Keep identity documents outside the code repository."
+    },
+    {
+      "code": "portal-confirmation",
+      "item": "Application confirmation/signature page required by the current portal",
+      "status": "not-recorded",
+      "note": "Use the current portal instructions."
+    },
+    {
+      "code": "other-ownership-proof",
+      "item": "Ownership or development agreement when applicable",
+      "status": "not-recorded",
+      "note": "Examples include cooperation, commission, employment, transfer, or inheritance documents."
+    }
+  ],
+  "review": {
+    "notes": [],
+    "human_reviewed_at": ""
+  }
+}

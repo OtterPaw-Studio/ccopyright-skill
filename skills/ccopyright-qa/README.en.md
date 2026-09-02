@@ -1,17 +1,33 @@
+<div align="center">
+
 # ccopyright-qa
 
-> Understand software copyright registration before deciding to self-serve,
-> purchase assistance, or begin material preparation.
+> **Understand software copyright registration before deciding to self-serve, purchase assistance, or begin material preparation.**
 
-[简体中文](README.md) · [Quick start](#quick-start) · [What to ask](#what-to-ask) · [How answers are verified](#how-answers-are-verified) · [Safety and scope](#safety-and-scope)
+**Read-only Q&A** · **Page-level official sources** · **Neutral redacted-quote breakdowns** · **No file writes**
 
-`ccopyright-qa` is a read-only Q&A Skill for ordinary China computer-software
-copyright registration. It explains fields, materials, conditional branches,
-self-service paths, and redacted service quotes supplied by the user.
+[简体中文](README.md) · [What it is for](#what-it-is-for) · [Quick start](#quick-start) · [How answers are verified](#how-answers-are-verified) · [Safety and scope](#safety-and-scope)
 
-Its purpose is not to prove that every third-party service lacks value. It
-helps you see what is official, what you can complete yourself, what work a
-service is offering, and which issues genuinely need specialist judgment.
+</div>
+
+---
+
+`ccopyright-qa` is a read-only Q&A Skill for ordinary China computer-software copyright registration. It explains fields, materials, conditional branches, self-service paths, and redacted service quotes supplied by the user.
+
+Its purpose is not to prove that every third-party service lacks value. It helps you see what is official, what you can complete yourself, what work a service is offering, and which issues genuinely need specialist judgment.
+
+## What it is for
+
+| Your question | What you receive |
+|---|---|
+| “What materials are normally required?” | A direct answer, legal baseline, current-portal checks, and self-service next step |
+| “What does the consecutive first and last 30-page rule mean?” | Specific official basis, access date, conditions, and uncertainty |
+| “Do I need an agency?” | Official work, self-service work, possible value of human assistance, and boundaries |
+| “What does this quote actually include?” | Deliverables, conditions, omitted work, and follow-up questions for a redacted quote |
+
+Use `ccopyright-register` instead for repository scanning, source selection, manual/PDF generation, or material validation. Loading this Skill never authorizes repository writes.
+
+A complete answer aims to provide: **direct conclusion → evidence class and date → conditions → uncertainty → self-service next step → relevant paid-help scope**. Simple fact questions are not forced into a long template.
 
 ## Quick start
 

@@ -1,8 +1,16 @@
+<div align="center">
+
 # ccopyright-register
 
-> Prepare reviewable ordinary China software copyright registration materials from a code repository.
+> **Prepare reviewable ordinary China software copyright registration materials from a code repository.**
 
-[简体中文](README.md) · [Start using it](#start-using-it) · [Prerequisites](#prerequisites) · [Outputs](#outputs)
+**Repository assessment** · **Fact confirmation** · **Material generation** · **PDF validation** · **Human review**
+
+[简体中文](README.md) · [What it is for](#what-it-is-for) · [Start using it](#start-using-it) · [Outputs](#outputs) · [Safety and limitations](#safety-and-limitations)
+
+</div>
+
+---
 
 Use this skill when you want an AI coding agent to inspect a software repository, organize applicant-confirmed registration facts, and prepare the application worksheet plus program/document identification materials.
 
@@ -11,6 +19,19 @@ It supports preparation before manual submission to the [China Copyright Protect
 The repository also provides the read-only `ccopyright-qa` Skill. Start there
 when you are still learning the rules, deciding whether assistance is needed,
 or breaking down a service quote. This guide covers material preparation only.
+
+## What it is for
+
+| Your goal | What the Skill does |
+|---|---|
+| “First tell me whether this repository is usable” | Inventory source, docs, Git, licenses, and sensitive patterns read-only; return candidate boundaries and **INFO/WARNING** findings |
+| “Start a draft” | Explain the write scope, create `.ccopyright/`, organize facts, and generate worksheets and identification material |
+| “Check whether the material is ready” | Render A4 PDFs, check pagination, hashes, field constraints, and unresolved items, then create contact sheets |
+| “Preserve a human-reviewed revision” | After explicit confirmation, publish a timestamped `ready-to-submit` revision without overwriting earlier work |
+
+Use `ccopyright-qa` for rules, agency decisions, or service-quote breakdowns. This Skill does not support portal login, automatic submission, payment, application tracking, or correction-notice parsing.
+
+## Install
 
 ~~~bash
 npx skills add OtterPaw-Studio/ccopyright-skill --skill ccopyright-register

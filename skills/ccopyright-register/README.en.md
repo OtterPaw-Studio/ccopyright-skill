@@ -12,9 +12,9 @@
 
 ---
 
-Use this skill when you want an AI coding agent to inspect a software repository, organize applicant-confirmed registration facts, and prepare the application worksheet plus program/document identification materials.
+`ccopyright-register` turns a real software repository into registration material. It first inspects the source, documentation, and repository state; then it puts applicant-confirmed facts into a worksheet and prepares the program and document identification material.
 
-It supports preparation before manual submission to the [China Copyright Protection Center](https://www.ccopyright.com.cn/). It does not fill or submit the portal, operate an applicant account, track an application, or parse correction notices.
+It only covers preparation before manual submission to the [China Copyright Protection Center](https://www.ccopyright.com.cn/). It does not fill or submit the portal, operate an applicant account, track an application, or parse correction notices.
 
 The repository also provides the read-only `ccopyright-qa` Skill. Start there
 when you are still learning the rules, deciding whether assistance is needed,
@@ -22,14 +22,14 @@ or breaking down a service quote. This guide covers material preparation only.
 
 ## What it is for
 
-| Your goal | What the Skill does |
+| What you want to do | How it handles it |
 |---|---|
-| “First tell me whether this repository is usable” | Inventory source, docs, Git, licenses, and sensitive patterns read-only; return candidate boundaries and **INFO/WARNING** findings |
-| “Start a draft” | Explain the write scope, create `.ccopyright/`, organize facts, and generate worksheets and identification material |
-| “Check whether the material is ready” | Render A4 PDFs, check pagination, hashes, field constraints, and unresolved items, then create contact sheets |
-| “Preserve a human-reviewed revision” | After explicit confirmation, publish a timestamped `ready-to-submit` revision without overwriting earlier work |
+| “First tell me whether this repository is usable” | Inspect source, docs, Git, licenses, and sensitive patterns read-only; list candidate boundaries and **INFO/WARNING** findings |
+| “Start a draft” | Explain where it will write, create `.ccopyright/`, organize facts, and generate the worksheet and identification material |
+| “Show me what is still missing” | Render A4 PDFs, check pagination, hashes, field limits, and unresolved items, then create contact sheets |
+| “Keep a human-reviewed revision” | After explicit confirmation, publish a timestamped `ready-to-submit` revision without overwriting an earlier draft |
 
-Use `ccopyright-qa` for rules, agency decisions, or service-quote breakdowns. This Skill does not support portal login, automatic submission, payment, application tracking, or correction-notice parsing.
+Use `ccopyright-qa` for rules, agency questions, or service-quote breakdowns. Portal login, automatic submission, payment, application tracking, and correction-notice parsing are outside this Skill.
 
 ## Install
 
@@ -46,7 +46,7 @@ npx skills add OtterPaw-Studio/ccopyright-skill \
 
 ## Start using it
 
-Open the software repository in your agent and ask for an assessment:
+Open the repository in your agent. You can start with assessment only:
 
 ~~~text
 Use $ccopyright-register to assess this repository for an ordinary China
@@ -54,7 +54,7 @@ software copyright registration. Do not generate materials yet. Show candidate
 source boundaries, missing applicant facts, and all warnings.
 ~~~
 
-Or begin the complete workflow:
+If you have already decided to prepare the material yourself, start with a draft:
 
 ~~~text
 Use $ccopyright-register to prepare a draft software copyright registration
@@ -62,7 +62,7 @@ package for this repository. Create .ccopyright, preserve product source files,
 and ask me only for facts the repository cannot establish safely.
 ~~~
 
-For the final stage:
+After the draft is confirmed, move to the final build:
 
 ~~~text
 Use $ccopyright-register to perform the final build, render and validate both
@@ -92,7 +92,7 @@ No API key, portal credential, identity scan, or signing certificate is required
 
 ## What the skill asks you to confirm
 
-Repository metadata is only a suggestion. You remain responsible for confirming:
+Repository metadata is useful as a clue, but it cannot establish the following facts. The applicant must confirm them:
 
 - exact software full name, optional short name, and version;
 - rights holders and ordering;
@@ -107,14 +107,14 @@ Identity numbers, identity scans, signatures, credentials, cookies, and unredact
 
 ## Workflow
 
-1. **Assess** — read-only repository inventory and **INFO**/**WARNING** precheck.
-2. **Initialize** — create **.ccopyright/** and the schema-v3 canonical fact file; existing workspaces migrate while preserving facts.
-3. **Draft** — generate the copy-ready form worksheet, conditional proof checklist, source/document materials, and traceability records.
-4. **Confirm** — resolve missing facts, current portal rules, source order, and unsupported document claims.
-5. **Render and validate** — create A4 PDFs and check dimensions, row identity, canonical strings, hashes, and unresolved markers.
-6. **Review and publish** — inspect every contact-sheet page, then explicitly publish a new immutable revision.
+1. **Assess**: inspect the repository read-only and produce an **INFO**/**WARNING** precheck.
+2. **Initialize**: create **.ccopyright/** and its single fact file; an existing workspace is migrated without discarding its facts.
+3. **Draft**: generate the form worksheet, conditional proof checklist, source/document material, and traceability records.
+4. **Confirm**: fill in missing facts and check the current portal, source order, and document evidence.
+5. **Render and validate**: create A4 PDFs and check dimensions, source-line mapping, fields, hashes, and unresolved markers.
+6. **Review and publish**: inspect every contact-sheet page, then explicitly publish a new revision without overwriting the previous one.
 
-Repository, ownership, and IP precheck **WARNING** findings prompt review and do not block generation. Portal character conflicts, missing conditional fields, and unresolved active proof-readiness items appear as draft **WARNING** findings and block final generation; missing required facts, exceptional deposit, and failed PDF checks also stop the corresponding stage.
+Repository, ownership, and IP **WARNING** findings are reminders; they do not block a draft on their own. Final generation is blocked only by unresolved portal limits, conditional proofs, required facts, exceptional-deposit selection, or failed PDF checks.
 
 ## Outputs
 
@@ -130,23 +130,19 @@ Repository, ownership, and IP precheck **WARNING** findings prompt review and do
 
 ### Application worksheet
 
-Portal-ordered Chinese values, character counts, confirmation state, and
-conditional branches. The bundled portal validation profile reports character
-conflicts, unresolved conditional fields, and proof-readiness items as draft warnings, then enforces
-them as final gates. It is not official authority; the current portal always
-overrides it.
+Chinese form values are arranged in portal order, together with character counts, confirmation state, and conditional branches. The bundled profile warns about character conflicts, missing conditional fields, and proof readiness in a draft, then blocks unresolved items in the final build. It is a compatibility check, not official authority; the current portal always takes priority.
 
 ### Program material
 
-An explicit ordered first-party source stream with preserved content, blank lines, comments, and tabs. Each printed row maps to its original path, line number, stream position, and hash.
+Only explicitly selected first-party source is used. Original content, blank lines, comments, and tabs are preserved, and every printed row maps back to its file, line number, stream position, and hash.
 
 ### Document material
 
-Applicant-approved documentation and real product screenshots, backed by repository evidence where practical. Missing evidence produces a warning rather than invented functionality.
+Only applicant-approved documentation and real product screenshots are used, with important claims tied back to repository evidence where practical. Missing evidence produces a warning; the Skill does not invent product functionality.
 
 ### Proof checklist
 
-External readiness items for cooperative, commissioned, assigned-task, modified, successor-acquisition, partial-rights, and other applicable branches. Proof files are not copied into the repository. Status is limited to `not-recorded`, `ready`, or `not-required`; active branches must reach an allowed ready state before final generation.
+For cooperative, commissioned, assigned-task, modified, successor-acquisition, partial-rights, and similar cases, the checklist records what must be prepared outside the repository. Proof files are not copied in. Status is limited to `not-recorded`, `ready`, or `not-required`; every active branch must reach an allowed ready state before final generation.
 
 ## Optional direct commands
 
@@ -175,6 +171,6 @@ are documented in
 - No legal advice, ownership determination, or acceptance guarantee.
 - No automatic inference of rights holders, completion date, publication facts, or source disclosure authority.
 - No identity numbers/scans, signatures, credentials, session data, or supplied portal screenshots in the workspace.
-- Repository/IP findings have exactly two levels: **INFO** and **WARNING**.
+- Repository and IP prechecks use only two levels: **INFO** and **WARNING**.
 
-Always review the current portal and every rendered page before submission.
+The applicant still needs to check the current portal and review every rendered page before submission.

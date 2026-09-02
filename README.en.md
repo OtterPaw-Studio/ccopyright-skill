@@ -164,7 +164,7 @@ flowchart LR
 |---|---|---|
 | Ask first | Raise a question about a rule, field, material, or quote | A sourced answer, anything still unverified, and a practical next step |
 | Inspect the repository | Point to the repository you plan to register | Source/document inventory, candidate boundary, evidence map, and **INFO/WARNING** precheck |
-| Fill the gaps | Confirm facts the code cannot prove | Schema-v3 facts and an unresolved-item checklist |
+| Fill the gaps | Confirm facts the code cannot prove | A `facts/application.json` worksheet and an unresolved-item checklist |
 | Prepare material | Confirm source order and manual content | Form worksheet, program/document material, proof checklist, and traceability |
 | Validate | Check current portal requirements and complete the needed confirmations | A4 PDFs, pagination/hash/field checks, page images, and contact sheets |
 | Final review | Inspect the final material page by page | A timestamped `ready-to-submit` revision without overwriting earlier work |
@@ -200,7 +200,7 @@ Fees, channels, fields, upload limits, processing times, and provider prices cha
 
 A quote you provide is used only to understand that particular offer, not as a current market benchmark. The toolkit does not call a price “fair,” “unfair,” or “a scam” without scope and evidence. It breaks the offer down into official work, work you still need to do, provider deliverables, and the conditions behind its promises.
 
-The preparation Skill's fields, conditional branches, and character gates are an updateable portal-compatibility profile—not Q&A evidence and not a permanent official rule.
+`ccopyright-register` carries an updateable compatibility profile for fields, conditional branches, and character limits. It is not Q&A evidence and cannot replace the current portal.
 
 ## Safety and scope
 
@@ -215,7 +215,7 @@ Neither Skill:
 
 **ccopyright-qa** is read-only: it does not scan repositories or generate files. **ccopyright-register** tells you where it will write and waits for approval before using `.ccopyright/`; it never silently changes product source. The toolkit helps with understanding and preparation, not legal advice.
 
-Repository, ownership, and IP prechecks use exactly **INFO** and **WARNING** to prompt human review, not to make legal conclusions. Current portal constraints, required facts, ordinary-deposit selection, and PDF validation remain final-stage gates.
+Repository, ownership, and IP prechecks use only **INFO** and **WARNING**. They are reminders for human review, not legal conclusions. If portal fields, required facts, ordinary-deposit selection, or PDF checks are still unresolved, the final build stops and waits for them to be fixed.
 
 ## Managing installed Skills
 
@@ -247,7 +247,7 @@ Repository assessment, fact worksheets, traceability, Markdown, and HTML remain 
 
 ### Must every WARNING be removed?
 
-No. Repository, ownership, and IP precheck warnings prompt review and do not block generation. Current portal constraints, active proof branches, required facts, ordinary-deposit selection, and PDF validation can block final generation.
+No. Repository, ownership, and IP precheck warnings do not block a draft. Current portal limits, proofs required for this application, required facts, ordinary-deposit selection, and PDF validation can block the final build.
 
 ## Official references
 

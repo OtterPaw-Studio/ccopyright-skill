@@ -12,22 +12,22 @@
 
 ---
 
-`ccopyright-qa` is a read-only Q&A Skill for ordinary China computer-software copyright registration. It explains fields, materials, conditional branches, self-service paths, and redacted service quotes supplied by the user.
+`ccopyright-qa` is a read-only Q&A Skill for ordinary China computer-software copyright registration. Ask it how a field works, what material is needed, where a requirement comes from, or what a redacted service quote actually covers.
 
-Its purpose is not to prove that every third-party service lacks value. It helps you see what is official, what you can complete yourself, what work a service is offering, and which issues genuinely need specialist judgment.
+It does not automatically push you toward self-service, and it does not present an agency as an official requirement. It separates official work, work you can do yourself, what a provider is offering, and questions that need specialist judgment.
 
 ## What it is for
 
-| Your question | What you receive |
+| You might ask | How it responds |
 |---|---|
-| “What materials are normally required?” | A direct answer, legal baseline, current-portal checks, and self-service next step |
-| “What does the consecutive first and last 30-page rule mean?” | Specific official basis, access date, conditions, and uncertainty |
-| “Do I need an agency?” | Official work, self-service work, possible value of human assistance, and boundaries |
-| “What does this quote actually include?” | Deliverables, conditions, omitted work, and follow-up questions for a redacted quote |
+| “What materials are normally required?” | Starts with the answer, then explains the legal baseline and what still needs checking in the current portal |
+| “What does the consecutive first and last 30-page rule mean?” | Finds the relevant official source and gives its access date and conditions |
+| “Do I need an agency?” | Separates official work, work you can do yourself, and where human help may save time |
+| “What does this quote actually include?” | Breaks out deliverables, promise conditions, work left to you, and follow-up questions |
 
 Use `ccopyright-register` instead for repository scanning, source selection, manual/PDF generation, or material validation. Loading this Skill never authorizes repository writes.
 
-A complete answer aims to provide: **direct conclusion → evidence class and date → conditions → uncertainty → self-service next step → relevant paid-help scope**. Simple fact questions are not forced into a long template.
+Answers normally lead with the conclusion, then explain the source and date. Conditions, exceptions, and anything not yet verified are called out separately. If the issue is suitable for self-service, the answer also suggests a next step. Simple questions get simple answers.
 
 ## Quick start
 
@@ -74,9 +74,9 @@ Ordinary Q&A needs only an Agent Skills-compatible AI agent. It does not require
 Python, Chrome, Poppler, a code repository, or a portal account.
 
 For current fees, channels, forms, upload constraints, timelines, or provider
-offerings, the agent needs access to the corresponding current primary page.
-When it cannot access one, the Skill marks the current value unverified instead
-of substituting an old value from memory.
+offerings, the agent needs access to the corresponding current page. If the
+page is unavailable or no reliable current source can be found, the answer says
+“unverified” instead of filling the gap with an old value.
 
 ## What to ask
 
@@ -120,8 +120,7 @@ confirmation.
 
 ## Agencies and service fees
 
-The Skill does not decide that a price is “worth it” or “not worth it.” It
-separates:
+The Skill does not decide whether a price is “worth it.” It first separates:
 
 - officially required materials and actions;
 - fact confirmation, material organization, and portal operation you may be
@@ -132,10 +131,10 @@ separates:
   material needing specialist judgment;
 - undefined scope in “expedited,” “guaranteed,” or “refund on failure” claims.
 
-A provider page establishes only what that provider displayed on a particular
-date. It does not automatically establish a market price or official
-requirement. Unless you explicitly ask for current market research, the Skill
-analyzes only the redacted quote you supply.
+A provider page only shows what that provider displayed on a particular date;
+it is not automatically a market price or an official requirement. Unless you
+explicitly ask for current market research, only the redacted quote you supply
+is analyzed.
 
 ## Moving from Q&A to preparation
 
@@ -166,17 +165,17 @@ This Skill:
   data, or session data;
 - does not handle exceptional deposit, sealing, classified, or military flows.
 
-For complex ownership, contract disputes, or special deposit, it states the
-limit and suggests qualified human support. Answers are informational and
-preparatory assistance, not legal advice.
+For complex ownership, contract disputes, or special deposit, it explains what
+it cannot resolve and points you to qualified professional help. This Skill
+offers information and preparation guidance, not legal advice.
 
 ## FAQ
 
 ### Will it tell me whether I should hire an agency?
 
-It helps you evaluate scope and complexity but does not make the value choice
-for you. It separates official work, self-service work, provider deliverables,
-and unresolved conditions.
+It lays out the workload and the difficult parts, but the decision to buy help
+is yours. The answer explains what is official, what you can do yourself, what
+the provider is offering, and which conditions are still unclear.
 
 ### Can I upload a service contract for review?
 

@@ -8,11 +8,10 @@
 [![中文 / English](https://img.shields.io/badge/Docs-中文%20%2F%20English-5B5BD6)](README.md)
 [![Privacy First](https://img.shields.io/badge/Privacy-First-16865C)](#safety-and-scope)
 
-Rules scattered across legislation, service guides, and the authenticated portal?<br>
-Unsure what a service quote actually buys?<br>
-Already have a code repository, but not a traceable, reviewable material package?
+Not sure whether a requirement is official, what an agency fee actually covers,<br>
+or how your source code, manual, and application facts are supposed to line up?
 
-[Choose a Skill](#two-skills-one-path) · [One-minute install](#one-minute-install) · [First use](#first-use) · [From input to result](#from-input-to-result) · [Safety](#safety-and-scope)
+[Choose a Skill](#two-skills-one-path) · [One-minute install](#one-minute-install) · [First use](#first-use) · [How the work unfolds](#how-the-work-unfolds) · [Safety](#safety-and-scope)
 
 **Ordinary deposit** · **Manual submission** · **Privacy first** · **No legal conclusions**
 
@@ -20,39 +19,31 @@ Already have a code repository, but not a traceable, reviewable material package
 
 ---
 
-## Why this project exists
+## Why we built it
 
-Software copyright registration should not depend on guesswork, and fragmented public information should not force an applicant to buy a service they cannot evaluate.
+The hard part of software copyright registration is often not finding a template. It is working out whether a claim comes from a rule, a service guide, the authenticated portal, or a provider's own marketing. Once preparation starts, a different set of questions appears: which source belongs in the material, whether the manual is backed by the repository, and which facts only the applicant can confirm.
 
-This project separates “understand first” from “prepare next” into two independently installable Agent Skills: one provides source-aware, read-only Q&A; the other turns a real code repository into reviewable materials. The goal is to reduce information asymmetry by making four things visible before you choose self-service or paid help:
+That is why the toolkit has two Skills. `ccopyright-qa` helps you understand the question; `ccopyright-register` turns confirmed facts and real source code into reviewable material. Install either one on its own, or start with Q&A and decide later whether to prepare the material yourself.
 
-| Find the basis | Understand the service | Build the materials | Know when to stop |
-|---|---|---|---|
-| Separate rules, service guidance, current portal behavior, and third-party claims | See the actual work and conditions behind a service fee | Generate traceable, human-reviewable material from a real repository | Leave ownership, contract, and special-deposit issues to qualified specialists |
+Third-party services can still be useful. Organizing material, drafting, formatting, data entry, and human communication all take work. The toolkit does not decide whether a service is “worth it.” It separates official requirements, work you can do yourself, what the provider is actually delivering, and questions that still need specialist judgment.
 
-This does not mean third-party services lack value. Organization, drafting, formatting, data entry, and human communication can involve real work. The toolkit helps you distinguish official work, work you can perform, actual paid deliverables, and issues that still require specialist judgment.
-
-Both Skills support understanding and preparation before manual handling with the [China Copyright Protection Center](https://www.ccopyright.com.cn/). They do not sign in, fill or submit browser forms, track applications, or interpret correction notices.
+Both Skills stop before submission to the [China Copyright Protection Center](https://www.ccopyright.com.cn/). They do not sign in, fill or submit browser forms, track applications, or interpret correction notices.
 
 ## Two Skills, one path
 
 | | **ccopyright-qa** | **ccopyright-register** |
 |---|---|---|
-| Solves | Rules, fields, materials, self-service decisions, redacted quotes | Repository assessment, fact worksheets, source/document material, PDF validation |
-| Default behavior | Read-only answer with source, date, conditions, and unknowns | Assess read-only, then write only inside `.ccopyright/` after approval |
+| Best for | Rules, fields, materials, self-service decisions, redacted quotes | Repository assessment, fact worksheets, source/document material, PDF validation |
+| How it works | Read-only answers with sources, dates, conditions, and anything still unverified | Read-only assessment first; writes to `.ccopyright/` only after approval |
 | Writes files | Never | Yes, but never silently changes product source |
 | Local dependencies | No Python, Chrome, or Poppler for ordinary use | Python required; Chrome and Poppler for the PDF workflow |
 | Typical opening | “Can the short name be blank?” “Do I need an agency?” | “Assess this repository.” “Generate source, manual, and PDFs.” |
 
-The shortest decision rule:
+If you are unsure, use this rule of thumb:
 
 - **You only need an answer**: install **ccopyright-qa**.
 - **You need repository work**: install **ccopyright-register**.
 - **You are not sure yet**: install both and start with Q&A.
-
-```text
-Question → ccopyright-qa → self-service/paid-help decision → ccopyright-register → human review → current portal
-```
 
 ## One-minute install
 
@@ -97,7 +88,7 @@ DISABLE_TELEMETRY=1 npx skills add OtterPaw-Studio/ccopyright-skill \
 
 ## First use
 
-There is no fixed command language. Copy the prompt closest to your current goal.
+After installation, just describe what you need. You can copy one of these prompts or adapt it to your situation.
 
 ### Ask about the rules without generating files
 
@@ -155,7 +146,7 @@ python scripts/ccopyright.py preflight
 
 The local generator needs no additional LLM API key, portal password, identity document, or signing certificate.
 
-## From input to result
+## How the work unfolds
 
 ```mermaid
 flowchart LR
@@ -169,14 +160,14 @@ flowchart LR
     H --> I[Manual submission in the current portal]
 ```
 
-| Stage | What you provide | What the Skill returns |
+| Stage | What you do | What remains afterward |
 |---|---|---|
-| Understand | A rule, field, material, or quote question | Direct answer, evidence class and date, conditions, unknowns, and next step |
-| Assess | The code repository | Source/document inventory, candidate boundary, evidence map, and **INFO/WARNING** precheck |
-| Confirm | Applicant facts that code cannot prove | Schema-v3 canonical facts and unresolved-item checklist |
-| Generate | Confirmed source order and document content | Form worksheet, program/document material, proof-readiness checklist, and traceability |
-| Validate | Current portal constraints and confirmations | A4 PDFs, pagination/hash/field checks, page images, and contact sheets |
-| Review | Page-by-page approval | A timestamped `ready-to-submit` revision without overwriting earlier work |
+| Ask first | Raise a question about a rule, field, material, or quote | A sourced answer, anything still unverified, and a practical next step |
+| Inspect the repository | Point to the repository you plan to register | Source/document inventory, candidate boundary, evidence map, and **INFO/WARNING** precheck |
+| Fill the gaps | Confirm facts the code cannot prove | Schema-v3 facts and an unresolved-item checklist |
+| Prepare material | Confirm source order and manual content | Form worksheet, program/document material, proof checklist, and traceability |
+| Validate | Check current portal requirements and complete the needed confirmations | A4 PDFs, pagination/hash/field checks, page images, and contact sheets |
+| Final review | Inspect the final material page by page | A timestamped `ready-to-submit` revision without overwriting earlier work |
 
 ### Material workspace
 
@@ -205,9 +196,9 @@ Full guides: [material preparation](skills/ccopyright-register/README.en.md) · 
 3. current redacted portal text explicitly reviewed for this application;
 4. material establishing only a third party's own claim, or a clearly labeled inference or practice suggestion.
 
-Current fees, channels, fields, upload limits, processing times, and provider prices must not be answered from memory. When a current source does not support the value, the Skill marks it unverified.
+Fees, channels, fields, upload limits, processing times, and provider prices change. The Skill does not treat an old value as current; when it cannot find a current source, it says so plainly.
 
-A user-supplied quote remains case evidence rather than a current market price. The project does not label a price “fair,” “unfair,” or “a scam” without defined scope and evidence. It separates official work, self-service work, provider deliverables, promise conditions, and issues genuinely requiring specialist judgment.
+A quote you provide is used only to understand that particular offer, not as a current market benchmark. The toolkit does not call a price “fair,” “unfair,” or “a scam” without scope and evidence. It breaks the offer down into official work, work you still need to do, provider deliverables, and the conditions behind its promises.
 
 The preparation Skill's fields, conditional branches, and character gates are an updateable portal-compatibility profile—not Q&A evidence and not a permanent official rule.
 
@@ -222,7 +213,7 @@ Neither Skill:
 - stores identity numbers or scans, signatures, credentials, payment data, or session data;
 - automates exceptional deposit, sealing, classified, or military workflows.
 
-**ccopyright-qa** is read-only and does not scan repositories or generate files. **ccopyright-register** explains its write scope and obtains approval before using `.ccopyright/`; it never silently changes product source. Answers and outputs are informational and preparatory assistance, not legal advice.
+**ccopyright-qa** is read-only: it does not scan repositories or generate files. **ccopyright-register** tells you where it will write and waits for approval before using `.ccopyright/`; it never silently changes product source. The toolkit helps with understanding and preparation, not legal advice.
 
 Repository, ownership, and IP prechecks use exactly **INFO** and **WARNING** to prompt human review, not to make legal conclusions. Current portal constraints, required facts, ordinary-deposit selection, and PDF validation remain final-stage gates.
 

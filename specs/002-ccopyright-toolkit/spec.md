@@ -2,6 +2,7 @@
 
 Status: Implemented and validated
 Date: 2026-09-01
+Packaging cleanup: 2026-09-03, validated
 
 ## Background
 
@@ -200,6 +201,8 @@ As a user, I can discover exactly two Skills and install either one or both.
   UI metadata, and user README files.
 - Both Skill entrypoints pass the official Skill validator.
 - The deterministic archive builder produces one `.skill` archive per Skill.
+- Neither installed Skill nor its archive contains a registry `package.json`;
+  Skill identity and discovery remain in `SKILL.md`.
 
 ## Non-functional requirements
 
@@ -224,9 +227,9 @@ hashes; and the test and privacy checks pass.
 
 ## Validation record
 
-This is the historical validation record for specification 002. The current
-release baseline, expanded test count, and rebuilt archive hashes are recorded
-in [specification 003](../003-qa-official-sources/spec.md#validation-record).
+This is the original validation record for specification 002. The subsequent
+official-source/schema-v3 baseline is recorded in
+[specification 003](../003-qa-official-sources/spec.md#validation-record).
 
 Validated on 2026-09-01:
 
@@ -255,3 +258,38 @@ Release artifacts:
 |---|---:|---|---:|
 | `dist/ccopyright-qa.skill` | 24,171 bytes | `2d2996e9befe3cc7aa65d41e2db391ad6209ab5f86e5890ff008b569807334fc` | 13 |
 | `dist/ccopyright-register.skill` | 75,942 bytes | `a6cee60c7fd3617fddeef641aa218460ad2c41091b25213d9313ce66469acf11` | 22 |
+
+## Packaging cleanup validation (2026-09-03)
+
+Removed the legacy `skills/ccopyright-register/package.json` from the canonical
+Skill directory and archive requirements. Updated the existing archive test to
+reject that file in both packages and removed the obsolete registry-manifest
+coverage test. Maintainer guidance and historical Aone task status now reflect
+the removal.
+
+The [official skills CLI format guidance](https://github.com/vercel-labs/skills#creating-skills),
+accessed on 2026-09-03, defines Skills through `SKILL.md` with `name` and
+`description`. The local installation checks below confirm that this repository
+does not need a registry manifest for discovery or installation.
+
+- Ordinary Python suite: 31 tests ran; 30 passed and the opt-in PDF integration
+  was skipped. The explicit Chromium/Poppler integration passed separately.
+- Official Skill validator: both source directories and both extracted archive
+  roots passed.
+- skills CLI 1.5.23: exactly two Skills discovered; QA-only, register-only, and
+  combined copied installations matched their canonical directories. Both
+  installed register copies completed `preflight` successfully.
+- Two consecutive archive builds produced identical hashes. ZIP integrity,
+  entry hashes, source-content parity, and absence of `package.json` passed for
+  both archives. All six README files passed the local-link checks.
+- Removed publisher/registry values were absent from current project files and
+  both archives. The residue scan found no unexpected matches; an existing
+  synthetic migration-test path was reviewed as test input.
+
+Updated release artifacts, from the canonical skills.sh source
+`OtterPaw-Studio/ccopyright-skill`:
+
+| Archive | Size | SHA-256 | Entries |
+|---|---:|---|---:|
+| `dist/ccopyright-qa.skill` | 31,884 bytes | `26f5240abde0c35230972b434f717598495811dda6569f4fa95240f486a483f6` | 15 |
+| `dist/ccopyright-register.skill` | 82,473 bytes | `dde705ba3b789aef7169babdaafe427884a190324eda43ec4da5e416eecf4810` | 21 |

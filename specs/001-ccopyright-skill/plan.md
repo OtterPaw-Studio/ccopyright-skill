@@ -1,5 +1,9 @@
 # Implementation Plan
 
+This is the historical single-Skill plan. Specification 002 defines the
+two-Skill layout; its 2026-09-03 packaging cleanup removes the registry manifest
+and retires the iteration 5 package-publication plan below.
+
 ## Architecture
 
 The repository keeps one self-contained skill identity with bilingual

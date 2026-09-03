@@ -66,5 +66,6 @@
 - [x] T032 Add package-manifest coverage and deterministic archive assertions.
 - [x] T033 Run npm, Python, PDF, skills.sh, archive, privacy, and official Skill
       validation for iteration 5 and record the final results.
-- [ ] T034 Synchronize the Git source in Aone, publish version 0.0.3, and verify
-      that its immutable version file tree contains all expected files.
+- T034 Retired by the 2026-09-03 packaging cleanup in specification 002:
+  Aone synchronization and publication were not executed, and the legacy
+  registry manifest is no longer shipped.

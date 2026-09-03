@@ -87,8 +87,10 @@ from the active release gate for this iteration.
 
 Refactor the deterministic archive builder around package configurations. Each
 configuration supplies its Skill root, archive name, locales, and required
-entries. The register archive continues to include its implementation and Aone
-manifest; the QA archive contains only its own user and reference resources.
+entries. The register archive includes its implementation and assets; the QA
+archive contains only its own user and reference resources. The 2026-09-03
+cleanup removes the legacy register `package.json`, including its personal
+package name and private registry address, from the source and built archive.
 
 Both archives receive a generated `PACKAGE-MANIFEST.json`, stable timestamps,
 stable ordering, normalized file permissions, integrity testing, and SHA-256
@@ -118,5 +120,6 @@ reporting.
   ccopyright-register` invocation, as supported by the current skills CLI.
 - No `skills.sh.json` is required for discovery. A pack configuration can be a
   later product decision and is not introduced in this iteration.
-- Aone/Contextlab publishing is intentionally unchanged and not validated as
-  part of this iteration.
+- Aone/Contextlab synchronization and publishing remain outside this iteration.
+  The legacy registry manifest and its coverage test have been removed; the
+  existing archive test verifies that neither Skill ships `package.json`.

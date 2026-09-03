@@ -39,7 +39,6 @@ PACKAGE_SPECS = (
         "name": "ccopyright-register",
         "required": {
             "SKILL.md",
-            "package.json",
             "README.md",
             "README.en.md",
             "agents/openai.yaml",

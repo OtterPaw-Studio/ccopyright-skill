@@ -1,10 +1,14 @@
 # Software Copyright Preparation Skill Specification
 
-Status: Iteration 5 implementation validated; Aone publication pending
+Status: Historical implementation record; Aone package workflow retired
 Date: 2026-09-01
 Repository product model superseded by specification 002: this file documents
 the `ccopyright-register` Skill and its historical single-Skill iterations; the
 repository now ships `ccopyright-qa` and `ccopyright-register` independently.
+
+The 2026-09-03 packaging cleanup in specification 002 supersedes iteration 5:
+the legacy `package.json` and its registry-publication follow-up are no longer
+part of the delivered Skills. The iteration 5 requirements below are historical.
 
 Iteration 2 design input (terminology corrected by specification 003): a form
 walkthrough was used only to extract a portal compatibility profile of fields,
@@ -410,8 +414,8 @@ manifest owns the Aone version and complete file allowlist while the
 
 ## Iteration 5 validation record
 
-- `npm pack --dry-run --json` produced
-  `shuangchi-gsc-ccopyright-register@0.0.3` with 21 files: `SKILL.md`,
+- `npm pack --dry-run --json` validated the former registry package at version
+  `0.0.3` with 21 files: `SKILL.md`,
   `package.json`, both READMEs, UI metadata, both assets, all localized
   references, and both scripts.
 - The ordinary Python suite reported 19 passed and one intentionally skipped
@@ -425,6 +429,5 @@ manifest owns the Aone version and complete file allowlist while the
   `705bef0d3830e7eb269780e766533592ab8923d07012c2fffce74810fa74acc8`.
 - The privacy scan found no clipboard paths, temporary screenshot paths,
   18-character identity-number-shaped values, or placeholder evaluation text.
-- Aone Git synchronization and publication of immutable version `0.0.3` remain
-  pending external actions; version `0.0.2` is expected to retain its original
-  two-file tree.
+- Aone Git synchronization and publication were not completed in iteration 5.
+  This external follow-up was retired by the 2026-09-03 packaging cleanup.

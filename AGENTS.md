@@ -46,7 +46,6 @@ skills/
     references/zh-CN/          Chinese answering/source/topic/official-page references
   ccopyright-register/
     SKILL.md                   preparation entrypoint
-    package.json               retained Contextlab metadata for this Skill only
     README.md                  installed Chinese preparation guide (primary)
     README.en.md               installed English preparation guide
     agents/openai.yaml         UI metadata and invocation policy
@@ -199,10 +198,11 @@ pack behavior.
 ## Aone / Contextlab status
 
 Aone/Contextlab synchronization and publication are outside the active
-two-Skill iteration. Preserve the existing register
-<code>package.json</code> and its tests, but do not add Aone metadata to
-<code>ccopyright-qa</code>, change registry versions, synchronize, or publish
-unless the user explicitly resumes that work.
+two-Skill iteration. The legacy register <code>package.json</code> has been
+removed; neither installable Skill requires an npm/registry manifest. Keep
+personal publisher identifiers and private registry configuration out of both
+Skill directories. Do not synchronize or publish unless the user explicitly
+resumes that work.
 
 ## Deterministic archives
 
@@ -213,7 +213,7 @@ canonical directories. It must:
 - ignore bytecode and machine metadata;
 - require each Skill's entrypoint, UI metadata, both installed READMEs, and both
   localized reference sets;
-- include register scripts/assets and the retained register package manifest;
+- include register scripts/assets without a registry <code>package.json</code>;
 - write stable timestamps, ordering, permissions, manifests, and hashes;
 - remove deprecated <code>ccopyright.skill</code> and
   <code>软著.skill</code> outputs.

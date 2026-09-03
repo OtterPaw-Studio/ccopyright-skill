@@ -20,3 +20,9 @@
       deterministic builds, ZIP/link checks, and privacy audit.
 - [x] T009 Record validation evidence, mark completed tasks, and report both
       archive paths, sizes, hashes, and install behavior.
+- [x] T010 Remove the legacy register `package.json`, its archive requirement,
+      and obsolete registry tests; align maintainer guidance and retire the
+      historical Aone publication follow-up.
+- [x] T011 Verify archives without the registry manifest, ordinary/PDF tests,
+      source and archive validators, skills.sh discovery and copied
+      installations, then record the updated packaging validation.

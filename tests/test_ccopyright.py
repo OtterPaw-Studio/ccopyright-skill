@@ -835,6 +835,7 @@ class CommandAndPackageTests(unittest.TestCase):
                 with zipfile.ZipFile(output / f"{name}.skill") as archive:
                     self.assertIsNone(archive.testzip())
                     names = set(archive.namelist())
+                    self.assertNotIn("package.json", names)
                     self.assertFalse(
                         any(path.startswith("/") or ".." in Path(path).parts for path in names)
                     )
@@ -847,7 +848,6 @@ class CommandAndPackageTests(unittest.TestCase):
                 names = set(archive.namelist())
                 required = {
                     "SKILL.md",
-                    "package.json",
                     "README.md",
                     "README.en.md",
                     "agents/openai.yaml",
@@ -867,21 +867,6 @@ class CommandAndPackageTests(unittest.TestCase):
                 }
                 self.assertTrue(required.issubset(names))
                 self.assertIn(b"name: ccopyright-register", archive.read("SKILL.md"))
-                package = json.loads(archive.read("package.json"))
-                self.assertEqual(package["name"], "shuangchi-gsc-ccopyright-register")
-                self.assertEqual(package["version"], "0.0.3")
-                self.assertEqual(
-                    set(package["files"]),
-                    {
-                        "SKILL.md",
-                        "README.md",
-                        "README.en.md",
-                        "agents",
-                        "assets",
-                        "references",
-                        "scripts",
-                    },
-                )
                 self.assertIn(b"$ccopyright-register", archive.read("agents/openai.yaml"))
                 zh_readme = archive.read("README.md").decode()
                 en_readme = archive.read("README.en.md").decode()
@@ -1038,19 +1023,6 @@ class CommandAndPackageTests(unittest.TestCase):
                     (readme.parent / target).is_file(),
                     f"Broken local link in {readme.relative_to(ROOT)}: {destination}",
                 )
-
-    def test_contextlab_manifest_covers_every_skill_source_file(self) -> None:
-        package_root = ROOT / "skills" / "ccopyright-register"
-        package = json.loads((package_root / "package.json").read_text(encoding="utf-8"))
-        declared = set(package["files"])
-        for path in package_root.rglob("*"):
-            if not path.is_file() or path.name == "package.json":
-                continue
-            relative = path.relative_to(package_root)
-            self.assertTrue(
-                relative.as_posix() in declared or relative.parts[0] in declared,
-                f"Aone package manifest omits {relative.as_posix()}",
-            )
 
 
 class PdfIntegrationTests(RepositoryTestCase):
